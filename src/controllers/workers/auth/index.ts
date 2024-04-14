@@ -183,7 +183,7 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
     }
 }
 
-export const verifyJwtTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
         if(!token) {

@@ -32,7 +32,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signOutController = exports.meController = exports.verifyJwtTokenMiddleware = exports.verifyWorkerOTPController = exports.verifyWorkerPhoneNumberController = exports.registerController = void 0;
+exports.signOutController = exports.meController = exports.verifyWorkerJwtTokenMiddleware = exports.verifyWorkerOTPController = exports.verifyWorkerPhoneNumberController = exports.registerController = void 0;
 const errorHandlers_1 = require("../../../helpers/errorHandlers");
 const constants_js_1 = require("../../../helpers/constants.js");
 const index_js_1 = require("../../../services/otp/index.js");
@@ -206,7 +206,7 @@ const verifyWorkerOTPController = (req, res, next) => __awaiter(void 0, void 0, 
     }
 });
 exports.verifyWorkerOTPController = verifyWorkerOTPController;
-const verifyJwtTokenMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const verifyWorkerJwtTokenMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
     try {
         const token = (_c = req.headers.authorization) === null || _c === void 0 ? void 0 : _c.split(" ")[1];
@@ -234,7 +234,7 @@ const verifyJwtTokenMiddleware = (req, res, next) => __awaiter(void 0, void 0, v
         (0, errorHandlers_1.errorResponse)("Bearer token is invalid", res, 401);
     }
 });
-exports.verifyJwtTokenMiddleware = verifyJwtTokenMiddleware;
+exports.verifyWorkerJwtTokenMiddleware = verifyWorkerJwtTokenMiddleware;
 const meController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = res.locals.user;
