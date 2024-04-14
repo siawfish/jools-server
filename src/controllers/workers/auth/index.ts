@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { getXataClient } from '../../../xata.js'
-import { formatDbError, validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
+import { validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp/index.js';
 import sendSms, { constructVerificationSms } from '../../../services/sms/index.js';
-import { UserTypes, VerifyOTPpayloadType, WorkerType } from './types.js';
+import { AccountTypes, UserTypes, VerifyOTPpayloadType, WorkerType } from '../../../services/workers/types.js';
+import { createWorker, getWorkerById, getWorkerByPhoneNumber } from '../../../services/workers/index.js';
+import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
+import { JwtPayload } from '../../../services/jwt/types';
 
-const xata = getXataClient();
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { 
@@ -22,10 +23,10 @@ export const registerController = async (req: Request, res: Response, next: Next
             email,
             skills,
          }: WorkerType = req.body;
-        if(type !== UserTypes.USER && type !== UserTypes.WORKER) {
-            throw new Error("Invalid User Type")
+        if(type !== AccountTypes.INDIVIDUAL && type !== AccountTypes.COMPANY) {
+            throw new Error("Invalid Account Type")
         }
-        if( type === UserTypes.USER) {
+        if(type === AccountTypes.INDIVIDUAL) {
             if(!firstName?.trim()) {
                 throw new Error("First Name is required")
             }
@@ -33,7 +34,7 @@ export const registerController = async (req: Request, res: Response, next: Next
                 throw new Error("Last Name is required")
             }
         }
-        if( type === UserTypes.WORKER) {
+        if(type === AccountTypes.COMPANY) {
             if(!companyName?.trim()) {
                 throw new Error("Company Name is required")
             }
@@ -64,36 +65,29 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!validateSkills(skills)) {
             throw new Error("Skills is required")
         }
-        try {
-            const worker = await xata.db.workers.create({
-                firstName: firstName?.trim(),
-                lastName: lastName?.trim(),
-                companyName: companyName?.trim(),
-                phoneNumber: phoneNumber.trim(),
-                location,
-                workRate,
-                acceptedTerms,
-                type,
-                documents,
-                email: email.trim(),
-                skills,
-            })
-            await xata.db.everyone.create({
-                email: email.trim(),
-                phoneNumber: phoneNumber.trim(),
-                userType: type,
-                userId: worker.id,
-                firstName: firstName?.trim(),
-                lastName: lastName?.trim(),
-                companyName: companyName?.trim(),
-            })
-            return res.status(200).json({
-                message: "Registration Successful",
-                data: worker
-            })
-        } catch (error:any) {
-            throw new Error(formatDbError(error?.message))
+        const { error, data } = await createWorker({
+            firstName,
+            lastName,
+            companyName,
+            phoneNumber,
+            location,
+            workRate,
+            acceptedTerms,
+            type,
+            documents,
+            email,
+            skills,
+        });
+        if(error) {
+            throw new Error(error)
         }
+        if(!data) {
+            throw new Error("An error occurred")
+        }
+        return res.status(201).json({
+            message: "User registered successfully",
+            data
+        })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)
     }
@@ -104,10 +98,6 @@ export const verifyWorkerPhoneNumberController = async (req: Request, res: Respo
         const { phoneNumber } = req.query as { phoneNumber: string };
         if(!validatePhoneNumber(phoneNumber.trim())) {
             throw new Error("Phone Number is required")
-        }
-        const worker = await xata.db.workers.filter({ phoneNumber }).getFirst();
-        if(worker) {
-            throw new Error(`Worker with phone number ${phoneNumber} already exists`)
         }
         const { error, data } = await createOtp({ phoneNumber });
         if(error) {
@@ -154,19 +144,95 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
             throw new Error("Phone Number is required")
         }
         if(!validatePhoneNumber(phoneNumber.trim())) {
-            throw new Error("Phone Number is required")
+            throw new Error("Phone Number is invalid")
         }
-        const { error, data } = await verifyOtp({ otp, referenceId, phoneNumber });
+
+        const [_o, _w] = await Promise.all([
+            verifyOtp({ otp, referenceId, phoneNumber }),
+            getWorkerByPhoneNumber(phoneNumber)
+        ]);
+        if(_o?.error) {
+            throw new Error(_o?.error)
+        }
+        if(!_o?.data) {
+            throw new Error("An error occurred verifying OTP")
+        }
+        if(_w?.data?.id) {
+            const token = createJwtToken({
+                id: _w?.data?.id,
+                type: UserTypes.WORKER
+            })
+            if(token){
+                return res.status(200).json({
+                    message: "Phone Number Verified Successfully",
+                    data: {
+                        token,
+                        user: _w?.data
+                    }
+                })
+            }
+        }
+        return res.status(200).json({
+            message: "Phone Number Verified Successfully",
+            data: {
+                phoneNumber
+            }
+        })
+    } catch (error:any) {
+        errorResponse(error?.message, res, 400)
+    }
+}
+
+export const verifyJwtTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if(!token) {
+            throw new Error("Token is required")
+        }
+        if(isTokenBlacklisted(token)) {
+            throw new Error("Token is invalid")
+        }
+        const decodedToken = await verifyJwtToken(token);
+        if(!decodedToken?.id) {
+            throw new Error()
+        }
+        const { error, data } = await getWorkerById(decodedToken.id);
         if(error) {
             throw new Error(error)
         }
         if(!data) {
             throw new Error("An error occurred")
         }
+        res.locals.user = data;
+        next();
+    } catch (error:any) {
+        errorResponse("Bearer token is invalid", res, 401)
+    }
+}
+
+export const meController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = res.locals.user as WorkerType;
         return res.status(200).json({
-            message: "Phone Number Verified Successfully"
+            message: "User fetched successfully",
+            data: user
         })
     } catch (error:any) {
-        errorResponse(error?.message, res, 400)
+        errorResponse(error?.message, res, 401)
+    }
+}
+
+export const signOutController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if(!token) {
+            throw new Error("Token is required")
+        }
+        addToBlacklist(token);
+        return res.status(200).json({
+            message: "User signed out successfully"
+        })
+    } catch (error:any) {
+        errorResponse(error?.message, res, 401)
     }
 }

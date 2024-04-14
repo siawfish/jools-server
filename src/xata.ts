@@ -119,6 +119,7 @@ const tables = [
       { name: "phoneNumber", type: "string" },
       { name: "email", type: "email" },
       { name: "pushToken", type: "text" },
+      { name: "type", type: "string" }
     ],
     revLinks: [
       { column: "author", table: "comments" },

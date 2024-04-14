@@ -28,6 +28,8 @@ function sendSms(options) {
                 method: "GET",
             });
             const data = yield resp.text();
+            console.log('SMS RESPONSE------>', data);
+            console.log('SMS OTP------>', options.content);
             return { data };
         }
         catch (error) {

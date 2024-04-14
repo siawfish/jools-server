@@ -1,4 +1,4 @@
-import { AcceptedTermsType, DocumentsType, LocationType, SkillType } from "../controllers/workers/auth/types";
+import { AcceptedTermsType, DocumentsType, LocationType, SkillType } from "../services/workers/types";
 
 // export a function that validates ghanaian phone numbers
 export const validatePhoneNumber = (phoneNumber: string): boolean => {
@@ -53,7 +53,11 @@ export const formatDbError = (error: string, suffix?: string): string => {
     const [_, column, message] = error.split(":");
     const columnName = column.split("[")[1].split("]")[0]; // Extracts 'phoneNumber' from 'column [phoneNumber]'
     if (message.trim() === 'is not unique') {
-        return `${columnName} ${suffix ?? "is already registered"}`;
+        return `${convertCamelCaseToSentence(columnName)} ${suffix ?? "is already registered"}`;
     }
     return `${columnName}:${message}`;
 };
+
+export const convertCamelCaseToSentence = (camelCase: string): string => {
+    return camelCase.replace(/([A-Z])/g, " $1").toLowerCase();
+}

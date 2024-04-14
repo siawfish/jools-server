@@ -1,3 +1,4 @@
+import config from "../../../config/index.js";
 import { formatDbError } from "../../helpers/constants.js";
 import { getXataClient } from "../../xata.js";
 import { OtpType } from "./types.js";
@@ -36,7 +37,7 @@ export async function removeOtp({ referenceId }: { referenceId: string }) {
   try {
     await xata.db.otp.delete({ id: referenceId });
   } catch (error: any) {
-    console.log(error?.message);
+    console.log('ERROR REMOVING OTP------>', error?.message);
   }
 }
 
@@ -57,14 +58,14 @@ export async function verifyOtp({
     // check if the otp is expired
     const currentTime = new Date().getTime();
     const otpTime = new Date(savedOtp.xata.createdAt).getTime();
-    if (currentTime - otpTime > 60000) {
+    if (currentTime - otpTime > config.otp_expiry) {
       await xata.db.otp.delete({ id: referenceId });
       throw new Error("OTP expired");
     }
     const loginAttempts = savedOtp?.loginAttempts ?? 0;
-    if (loginAttempts >= 3) {
+    if (loginAttempts >= config.login_attempts) {
       await xata.db.otp.delete({ id: referenceId });
-      throw new Error("Exceeded maximum login attempts");
+      throw new Error("Exceeded maximum verification attempts");
     }
     if (savedOtp.code !== otp) {
       await savedOtp.update({

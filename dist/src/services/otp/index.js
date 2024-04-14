@@ -8,8 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyOtp = exports.removeOtp = exports.createOtp = void 0;
+const index_js_1 = __importDefault(require("../../../config/index.js"));
 const constants_js_1 = require("../../helpers/constants.js");
 const xata_js_1 = require("../../xata.js");
 const xata = (0, xata_js_1.getXataClient)();
@@ -47,7 +51,7 @@ function removeOtp(_a) {
             yield xata.db.otp.delete({ id: referenceId });
         }
         catch (error) {
-            console.log(error === null || error === void 0 ? void 0 : error.message);
+            console.log('ERROR REMOVING OTP------>', error === null || error === void 0 ? void 0 : error.message);
         }
     });
 }
@@ -63,14 +67,14 @@ function verifyOtp(_a) {
             // check if the otp is expired
             const currentTime = new Date().getTime();
             const otpTime = new Date(savedOtp.xata.createdAt).getTime();
-            if (currentTime - otpTime > 60000) {
+            if (currentTime - otpTime > index_js_1.default.otp_expiry) {
                 yield xata.db.otp.delete({ id: referenceId });
                 throw new Error("OTP expired");
             }
             const loginAttempts = (_b = savedOtp === null || savedOtp === void 0 ? void 0 : savedOtp.loginAttempts) !== null && _b !== void 0 ? _b : 0;
-            if (loginAttempts >= 3) {
+            if (loginAttempts >= index_js_1.default.login_attempts) {
                 yield xata.db.otp.delete({ id: referenceId });
-                throw new Error("Exceeded maximum login attempts");
+                throw new Error("Exceeded maximum verification attempts");
             }
             if (savedOtp.code !== otp) {
                 yield savedOtp.update({

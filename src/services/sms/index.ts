@@ -18,6 +18,8 @@ export default async function sendSms(
     });
 
     const data = await resp.text();
+    console.log('SMS RESPONSE------>', data);
+    console.log('SMS OTP------>', options.content);
     return { data };
   } catch (error: any) {
     return { error: error?.message };

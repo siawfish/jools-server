@@ -8,7 +8,8 @@ const {
     HUBTEL_SMS_URL,
     HUBTEL_CLIENT_ID,
     HUBTEL_CLIENT_SECRET,
-    HUBTEL_SMS_NAME
+    HUBTEL_SMS_NAME,
+    JWT_SECRET,
 } = process.env;
 
 const config = {
@@ -17,7 +18,10 @@ const config = {
     hubtel_sms_url: HUBTEL_SMS_URL,
     hubtel_client_id: HUBTEL_CLIENT_ID,
     hubtel_client_secret: HUBTEL_CLIENT_SECRET,
-    hubtel_sms_name: HUBTEL_SMS_NAME
+    hubtel_sms_name: HUBTEL_SMS_NAME,
+    login_attempts: 3,
+    otp_expiry: 60000,
+    jwt_secret: JWT_SECRET,
 };
 
 export default config;

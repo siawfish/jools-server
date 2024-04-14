@@ -32,21 +32,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyWorkerOTPController = exports.verifyWorkerPhoneNumberController = exports.registerController = void 0;
+exports.signOutController = exports.meController = exports.verifyJwtTokenMiddleware = exports.verifyWorkerOTPController = exports.verifyWorkerPhoneNumberController = exports.registerController = void 0;
 const errorHandlers_1 = require("../../../helpers/errorHandlers");
-const xata_js_1 = require("../../../xata.js");
 const constants_js_1 = require("../../../helpers/constants.js");
 const index_js_1 = require("../../../services/otp/index.js");
 const index_js_2 = __importStar(require("../../../services/sms/index.js"));
-const types_js_1 = require("./types.js");
-const xata = (0, xata_js_1.getXataClient)();
+const types_js_1 = require("../../../services/workers/types.js");
+const index_js_3 = require("../../../services/workers/index.js");
+const jwt_1 = require("../../../services/jwt");
 const registerController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstName, lastName, companyName, phoneNumber, location, workRate, acceptedTerms, type, documents, email, skills, } = req.body;
-        if (type !== types_js_1.UserTypes.USER && type !== types_js_1.UserTypes.WORKER) {
-            throw new Error("Invalid User Type");
+        if (type !== types_js_1.AccountTypes.INDIVIDUAL && type !== types_js_1.AccountTypes.COMPANY) {
+            throw new Error("Invalid Account Type");
         }
-        if (type === types_js_1.UserTypes.USER) {
+        if (type === types_js_1.AccountTypes.INDIVIDUAL) {
             if (!(firstName === null || firstName === void 0 ? void 0 : firstName.trim())) {
                 throw new Error("First Name is required");
             }
@@ -54,7 +54,7 @@ const registerController = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 throw new Error("Last Name is required");
             }
         }
-        if (type === types_js_1.UserTypes.WORKER) {
+        if (type === types_js_1.AccountTypes.COMPANY) {
             if (!(companyName === null || companyName === void 0 ? void 0 : companyName.trim())) {
                 throw new Error("Company Name is required");
             }
@@ -85,37 +85,29 @@ const registerController = (req, res, next) => __awaiter(void 0, void 0, void 0,
         if (!(0, constants_js_1.validateSkills)(skills)) {
             throw new Error("Skills is required");
         }
-        try {
-            const worker = yield xata.db.workers.create({
-                firstName: firstName === null || firstName === void 0 ? void 0 : firstName.trim(),
-                lastName: lastName === null || lastName === void 0 ? void 0 : lastName.trim(),
-                companyName: companyName === null || companyName === void 0 ? void 0 : companyName.trim(),
-                phoneNumber: phoneNumber.trim(),
-                location,
-                workRate,
-                acceptedTerms,
-                type,
-                documents,
-                email: email.trim(),
-                skills,
-            });
-            yield xata.db.everyone.create({
-                email: email.trim(),
-                phoneNumber: phoneNumber.trim(),
-                userType: type,
-                userId: worker.id,
-                firstName: firstName === null || firstName === void 0 ? void 0 : firstName.trim(),
-                lastName: lastName === null || lastName === void 0 ? void 0 : lastName.trim(),
-                companyName: companyName === null || companyName === void 0 ? void 0 : companyName.trim(),
-            });
-            return res.status(200).json({
-                message: "Registration Successful",
-                data: worker
-            });
+        const { error, data } = yield (0, index_js_3.createWorker)({
+            firstName,
+            lastName,
+            companyName,
+            phoneNumber,
+            location,
+            workRate,
+            acceptedTerms,
+            type,
+            documents,
+            email,
+            skills,
+        });
+        if (error) {
+            throw new Error(error);
         }
-        catch (error) {
-            throw new Error((0, constants_js_1.formatDbError)(error === null || error === void 0 ? void 0 : error.message));
+        if (!data) {
+            throw new Error("An error occurred");
         }
+        return res.status(201).json({
+            message: "User registered successfully",
+            data
+        });
     }
     catch (error) {
         (0, errorHandlers_1.errorResponse)(error === null || error === void 0 ? void 0 : error.message, res, 400);
@@ -127,10 +119,6 @@ const verifyWorkerPhoneNumberController = (req, res, next) => __awaiter(void 0, 
         const { phoneNumber } = req.query;
         if (!(0, constants_js_1.validatePhoneNumber)(phoneNumber.trim())) {
             throw new Error("Phone Number is required");
-        }
-        const worker = yield xata.db.workers.filter({ phoneNumber }).getFirst();
-        if (worker) {
-            throw new Error(`Worker with phone number ${phoneNumber} already exists`);
         }
         const { error, data } = yield (0, index_js_1.createOtp)({ phoneNumber });
         if (error) {
@@ -163,6 +151,7 @@ const verifyWorkerPhoneNumberController = (req, res, next) => __awaiter(void 0, 
 });
 exports.verifyWorkerPhoneNumberController = verifyWorkerPhoneNumberController;
 const verifyWorkerOTPController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         const { otp, referenceId, phoneNumber } = req.body;
         if (!otp) {
@@ -178,17 +167,38 @@ const verifyWorkerOTPController = (req, res, next) => __awaiter(void 0, void 0, 
             throw new Error("Phone Number is required");
         }
         if (!(0, constants_js_1.validatePhoneNumber)(phoneNumber.trim())) {
-            throw new Error("Phone Number is required");
+            throw new Error("Phone Number is invalid");
         }
-        const { error, data } = yield (0, index_js_1.verifyOtp)({ otp, referenceId, phoneNumber });
-        if (error) {
-            throw new Error(error);
+        const [_o, _w] = yield Promise.all([
+            (0, index_js_1.verifyOtp)({ otp, referenceId, phoneNumber }),
+            (0, index_js_3.getWorkerByPhoneNumber)(phoneNumber)
+        ]);
+        if (_o === null || _o === void 0 ? void 0 : _o.error) {
+            throw new Error(_o === null || _o === void 0 ? void 0 : _o.error);
         }
-        if (!data) {
-            throw new Error("An error occurred");
+        if (!(_o === null || _o === void 0 ? void 0 : _o.data)) {
+            throw new Error("An error occurred verifying OTP");
+        }
+        if ((_a = _w === null || _w === void 0 ? void 0 : _w.data) === null || _a === void 0 ? void 0 : _a.id) {
+            const token = (0, jwt_1.createJwtToken)({
+                id: (_b = _w === null || _w === void 0 ? void 0 : _w.data) === null || _b === void 0 ? void 0 : _b.id,
+                type: types_js_1.UserTypes.WORKER
+            });
+            if (token) {
+                return res.status(200).json({
+                    message: "Phone Number Verified Successfully",
+                    data: {
+                        token,
+                        user: _w === null || _w === void 0 ? void 0 : _w.data
+                    }
+                });
+            }
         }
         return res.status(200).json({
-            message: "Phone Number Verified Successfully"
+            message: "Phone Number Verified Successfully",
+            data: {
+                phoneNumber
+            }
         });
     }
     catch (error) {
@@ -196,3 +206,62 @@ const verifyWorkerOTPController = (req, res, next) => __awaiter(void 0, void 0, 
     }
 });
 exports.verifyWorkerOTPController = verifyWorkerOTPController;
+const verifyJwtTokenMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
+    try {
+        const token = (_c = req.headers.authorization) === null || _c === void 0 ? void 0 : _c.split(" ")[1];
+        if (!token) {
+            throw new Error("Token is required");
+        }
+        if ((0, jwt_1.isTokenBlacklisted)(token)) {
+            throw new Error("Token is invalid");
+        }
+        const decodedToken = yield (0, jwt_1.verifyJwtToken)(token);
+        if (!(decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken.id)) {
+            throw new Error();
+        }
+        const { error, data } = yield (0, index_js_3.getWorkerById)(decodedToken.id);
+        if (error) {
+            throw new Error(error);
+        }
+        if (!data) {
+            throw new Error("An error occurred");
+        }
+        res.locals.user = data;
+        next();
+    }
+    catch (error) {
+        (0, errorHandlers_1.errorResponse)("Bearer token is invalid", res, 401);
+    }
+});
+exports.verifyJwtTokenMiddleware = verifyJwtTokenMiddleware;
+const meController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = res.locals.user;
+        return res.status(200).json({
+            message: "User fetched successfully",
+            data: user
+        });
+    }
+    catch (error) {
+        (0, errorHandlers_1.errorResponse)(error === null || error === void 0 ? void 0 : error.message, res, 401);
+    }
+});
+exports.meController = meController;
+const signOutController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
+    try {
+        const token = (_d = req.headers.authorization) === null || _d === void 0 ? void 0 : _d.split(" ")[1];
+        if (!token) {
+            throw new Error("Token is required");
+        }
+        (0, jwt_1.addToBlacklist)(token);
+        return res.status(200).json({
+            message: "User signed out successfully"
+        });
+    }
+    catch (error) {
+        (0, errorHandlers_1.errorResponse)(error === null || error === void 0 ? void 0 : error.message, res, 401);
+    }
+});
+exports.signOutController = signOutController;

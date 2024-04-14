@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatDbError = exports.validateSkills = exports.validateWorkRate = exports.validateDocuments = exports.validateAcceptedTerms = exports.validateLocation = exports.validateEmail = exports.validatePhoneNumber = void 0;
+exports.convertCamelCaseToSentence = exports.formatDbError = exports.validateSkills = exports.validateWorkRate = exports.validateDocuments = exports.validateAcceptedTerms = exports.validateLocation = exports.validateEmail = exports.validatePhoneNumber = void 0;
 // export a function that validates ghanaian phone numbers
 const validatePhoneNumber = (phoneNumber) => {
     const phoneRegex = /^(?:0|\+233)[0-9]{9}$/;
@@ -61,8 +61,12 @@ const formatDbError = (error, suffix) => {
     const [_, column, message] = error.split(":");
     const columnName = column.split("[")[1].split("]")[0]; // Extracts 'phoneNumber' from 'column [phoneNumber]'
     if (message.trim() === 'is not unique') {
-        return `${columnName} ${suffix !== null && suffix !== void 0 ? suffix : "is already registered"}`;
+        return `${(0, exports.convertCamelCaseToSentence)(columnName)} ${suffix !== null && suffix !== void 0 ? suffix : "is already registered"}`;
     }
     return `${columnName}:${message}`;
 };
 exports.formatDbError = formatDbError;
+const convertCamelCaseToSentence = (camelCase) => {
+    return camelCase.replace(/([A-Z])/g, " $1").toLowerCase();
+};
+exports.convertCamelCaseToSentence = convertCamelCaseToSentence;

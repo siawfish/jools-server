@@ -6,7 +6,7 @@ export interface WorkerType {
     location: LocationType;
     workRate: number;
     acceptedTerms: AcceptedTermsType;
-    type: UserTypes;
+    type: AccountTypes;
     documents?: DocumentsType;
     email: string;
     skills: SkillType[];
@@ -14,11 +14,17 @@ export interface WorkerType {
     rating?: number;
     isVerified?: boolean;
     pushToken?: string;
+    id?: string;
   }
   
   export enum UserTypes {
     WORKER = "WORKER",
     USER = "USER",
+  }
+
+  export enum AccountTypes {
+    INDIVIDUAL = "INDIVIDUAL",
+    COMPANY = "COMPANY",
   }
   
   export interface AcceptedTermsType {
