@@ -24,6 +24,7 @@ app.use(
 );
 
 app.use('/api/workers/auth', routes.workersAuthRoutes);
+app.use('/api/workers', routes.workersProfileRoutes);
 
 
 app.listen(config.port, ()=>console.log(`App is listening on url ${config.host}:${config.port}`));

@@ -1,7 +1,9 @@
-import router from './workers/auth.js'
+import authRoutes from './workers/auth.js'
+import profileRoutes from './workers/profile.js'
 
 const routes = {
-    workersAuthRoutes: router
+    workersAuthRoutes: authRoutes,
+    workersProfileRoutes: profileRoutes
 }
 
 export default routes

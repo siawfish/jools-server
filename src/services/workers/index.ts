@@ -50,7 +50,7 @@ export const createWorker = async (worker: WorkerType): Promise<{error?:string; 
 
 export const getWorkerByPhoneNumber = async (phoneNumber: string): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const worker = await xata.db.workers.filter({ phoneNumber }).getFirst();
+        const worker = await xata.db.workers.filter({ phoneNumber, status: 1 }).getFirst();
         if(!worker) {
             throw new Error(`User with phone number ${phoneNumber} does not exist`)
         }
@@ -62,12 +62,38 @@ export const getWorkerByPhoneNumber = async (phoneNumber: string): Promise<{erro
 
 export const getWorkerById = async (id: string): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const worker = await xata.db.workers.read(id);
+        const worker = await xata.db.workers.filter({ id, status: 1 }).getFirst();
         if(!worker) {
             throw new Error(`User with id "${id}" does not exist`)
         }
         return { data: worker as WorkerType }
     } catch (error:any) {
         return { error: error?.message }
+    }
+}
+
+export const updateWorker = async (id:string, worker: Partial<WorkerType>): Promise<{error?:string; data?:WorkerType}> => {
+    try {
+        const _w = await xata.db.workers.update(id, worker)
+        const updatedWorker = await xata.db.everyone.filter({ userId: id }).getFirst()
+        if(updatedWorker) {
+            await xata.db.everyone.update(updatedWorker.id, worker)
+        }
+        return { data: _w as WorkerType }
+    } catch (error:any) {
+        return { error: formatDbError(error?.message) }
+    }
+}
+
+export const deleteWorker = async (id: string): Promise<{error?:string; data?:WorkerType}> => {
+    try {
+        const worker = await xata.db.workers.update(id, { status: 0 })
+        const updatedWorker = await xata.db.everyone.filter({ userId: id }).getFirst()
+        if(updatedWorker) {
+            await xata.db.everyone.update(updatedWorker.id, { status: 0 })
+        }
+        return { data: worker as WorkerType }
+    } catch (error:any) {
+        return { error: formatDbError(error?.message) }
     }
 }

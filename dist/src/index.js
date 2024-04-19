@@ -21,4 +21,5 @@ app.use((0, express_fileupload_1.default)({
     createParentPath: true
 }));
 app.use('/api/workers/auth', index_js_2.default.workersAuthRoutes);
+app.use('/api/workers', index_js_2.default.workersProfileRoutes);
 app.listen(index_js_1.default.port, () => console.log(`App is listening on url ${index_js_1.default.host}:${index_js_1.default.port}`));

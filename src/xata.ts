@@ -25,6 +25,7 @@ const tables = [
       { name: "isVerified", type: "bool" },
       { name: "pushToken", type: "text" },
       { name: "skills", type: "json" },
+      { name: "status", type: "int", notNull: true, defaultValue: "1" },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
@@ -119,7 +120,8 @@ const tables = [
       { name: "phoneNumber", type: "string" },
       { name: "email", type: "email" },
       { name: "pushToken", type: "text" },
-      { name: "type", type: "string" }
+      { name: "type", type: "string" },
+      { name: "status", type: "int", notNull: true, defaultValue: "1" },
     ],
     revLinks: [
       { column: "author", table: "comments" },

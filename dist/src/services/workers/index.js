@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getWorkerById = exports.getWorkerByPhoneNumber = exports.createWorker = void 0;
+exports.deleteWorker = exports.updateWorker = exports.getWorkerById = exports.getWorkerByPhoneNumber = exports.createWorker = void 0;
 const constants_1 = require("../../helpers/constants");
 const xata_1 = require("../../xata");
 const types_1 = require("./types");
@@ -49,7 +49,7 @@ const createWorker = (worker) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createWorker = createWorker;
 const getWorkerByPhoneNumber = (phoneNumber) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const worker = yield xata.db.workers.filter({ phoneNumber }).getFirst();
+        const worker = yield xata.db.workers.filter({ phoneNumber, status: 1 }).getFirst();
         if (!worker) {
             throw new Error(`User with phone number ${phoneNumber} does not exist`);
         }
@@ -62,7 +62,7 @@ const getWorkerByPhoneNumber = (phoneNumber) => __awaiter(void 0, void 0, void 0
 exports.getWorkerByPhoneNumber = getWorkerByPhoneNumber;
 const getWorkerById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const worker = yield xata.db.workers.read(id);
+        const worker = yield xata.db.workers.filter({ id, status: 1 }).getFirst();
         if (!worker) {
             throw new Error(`User with id "${id}" does not exist`);
         }
@@ -73,3 +73,31 @@ const getWorkerById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getWorkerById = getWorkerById;
+const updateWorker = (id, worker) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const _w = yield xata.db.workers.update(id, worker);
+        const updatedWorker = yield xata.db.everyone.filter({ userId: id }).getFirst();
+        if (updatedWorker) {
+            yield xata.db.everyone.update(updatedWorker.id, worker);
+        }
+        return { data: _w };
+    }
+    catch (error) {
+        return { error: (0, constants_1.formatDbError)(error === null || error === void 0 ? void 0 : error.message) };
+    }
+});
+exports.updateWorker = updateWorker;
+const deleteWorker = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const worker = yield xata.db.workers.update(id, { status: 0 });
+        const updatedWorker = yield xata.db.everyone.filter({ userId: id }).getFirst();
+        if (updatedWorker) {
+            yield xata.db.everyone.update(updatedWorker.id, { status: 0 });
+        }
+        return { data: worker };
+    }
+    catch (error) {
+        return { error: (0, constants_1.formatDbError)(error === null || error === void 0 ? void 0 : error.message) };
+    }
+});
+exports.deleteWorker = deleteWorker;
