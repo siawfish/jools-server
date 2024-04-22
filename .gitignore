@@ -2,3 +2,5 @@
 node_modules
 .xata
 .xatarc
+temp
+dist
