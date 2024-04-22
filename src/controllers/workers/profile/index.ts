@@ -7,7 +7,6 @@ import { validateLocation, validateSkills, validateWorkRate } from '../../../hel
 export const getWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = req.params as { id: string };
-        console.log(req.query)
         if(!id) {
             throw new Error("id is required")
         }

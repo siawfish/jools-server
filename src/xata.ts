@@ -46,7 +46,7 @@ const tables = [
     columns: [
       { name: "caption", type: "text" },
       { name: "type", type: "string" },
-      { name: "resource", type: "json" },
+      { name: "resources", type: "json" },
       { name: "createdBy", type: "link", link: { table: "workers" } },
     ],
     revLinks: [{ column: "portfolio", table: "comments" }],

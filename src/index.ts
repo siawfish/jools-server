@@ -3,10 +3,9 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
-
 import config from '../config/index.js';
 import routes from './routes/index.js';
-import { clientErrorHandler, errorHandler, logErrors } from './helpers/errorHandlers.js';
+import cloudinaryConfig from '../config/cloudinary.js';
 
 const app = express();
 
@@ -23,8 +22,12 @@ app.use(
     })
 );
 
+cloudinaryConfig();
+
 app.use('/api/workers/auth', routes.workersAuthRoutes);
 app.use('/api/workers', routes.workersProfileRoutes);
+app.use('/api/workers', routes.workersPortfolioRoutes);
+app.use('/api/workers', routes.workersFilesRoutes);
 
 
 app.listen(config.port, ()=>console.log(`App is listening on url ${config.host}:${config.port}`));
