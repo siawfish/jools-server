@@ -14,8 +14,26 @@ export interface WorkerType {
     rating?: number;
     isVerified?: boolean;
     pushToken?: string;
+    workingHours?: WorkingDayType[];
     id?: string;
   }
+
+  export interface WorkingDayType {
+    day: DaysOfTheWeekType;
+    start: string;
+    end: string;
+  }
+
+  export enum DaysOfTheWeekType {
+    MONDAY = "MONDAY",
+    TUESDAY = "TUESDAY",
+    WEDNESDAY = "WEDNESDAY",
+    THURSDAY = "THURSDAY",
+    FRIDAY = "FRIDAY",
+    SATURDAY = "SATURDAY",
+    SUNDAY = "SUNDAY",
+  }
+
   
   export enum UserTypes {
     WORKER = "WORKER",
@@ -53,4 +71,3 @@ export interface WorkerType {
     referenceId: string;
     phoneNumber: string 
   }
-  

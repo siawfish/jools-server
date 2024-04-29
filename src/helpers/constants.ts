@@ -1,6 +1,6 @@
 import { ResourceUploadType } from "../services/files/types";
 import { ResourceType } from "../services/portfolio/types";
-import { AcceptedTermsType, DocumentsType, LocationType, SkillType } from "../services/workers/types";
+import { AcceptedTermsType, DaysOfTheWeekType, DocumentsType, LocationType, SkillType, WorkingDayType } from "../services/workers/types";
 
 // export a function that validates ghanaian phone numbers
 export const validatePhoneNumber = (phoneNumber: string): boolean => {
@@ -47,6 +47,33 @@ export const validateSkills = (skills: SkillType[]): boolean => {
     }
     return true;
 };
+
+export const validateWorkingHours = (workingHours: WorkingDayType[]): boolean => {
+    if (!Array.isArray(workingHours)) return false;
+    if (workingHours.length < 1) return false;
+    for (const workingHour of workingHours) {
+      if (typeof workingHour !== "object") return false;
+      if (typeof workingHour.day !== "string") return false;
+      if (typeof workingHour.start !== "string") return false;
+      if (typeof workingHour.end !== "string") return false;
+      if (
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.MONDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.TUESDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.WEDNESDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.THURSDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.FRIDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SATURDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SUNDAY
+      ) return false;
+      const [startHour, startMinute] = workingHour.start.split(":");
+      const [endHour, endMinute] = workingHour.end.split(":");
+      if (parseInt(startHour) < 0 || parseInt(startHour) > 23) return false;
+      if (parseInt(startMinute) < 0 || parseInt(startMinute) > 59) return false;
+      if (parseInt(endHour) < 0 || parseInt(endHour) > 23) return false;
+      if (parseInt(endMinute) < 0 || parseInt(endMinute) > 59) return false;
+    }
+    return true;
+}
 
 export const validateResources = (resources: ResourceType[]): boolean => {
     if (!Array.isArray(resources)) return false;

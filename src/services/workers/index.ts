@@ -1,6 +1,6 @@
 import { formatDbError } from "../../helpers/constants";
 import { getXataClient } from "../../xata";
-import { UserTypes, WorkerType } from "./types";
+import { DaysOfTheWeekType, UserTypes, WorkerType, WorkingDayType } from "./types";
 
 const xata = getXataClient();
 
@@ -74,11 +74,40 @@ export const getWorkerById = async (id: string): Promise<{error?:string; data?:W
 
 export const updateWorker = async (id:string, worker: Partial<WorkerType>): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const _w = await xata.db.workers.update(id, worker)
-        const updatedWorker = await xata.db.everyone.filter({ userId: id }).getFirst()
-        if(updatedWorker) {
-            await xata.db.everyone.update(updatedWorker.id, worker)
+        const [_dbWorker, _dbEveryone] = await Promise.all([xata.db.workers.filter({ id, status: 1 }).getFirst(), xata.db.everyone.filter({ userId: id }).getFirst()]);
+        if(!_dbWorker) {
+            throw new Error(`User with id "${id}" does not exist`)
         }
+        if(_dbWorker.id !== id) {
+            throw new Error("You are not authorized to perform this action")
+        }
+        if(!_dbEveryone) {
+            throw new Error(`User with id "${id}" does not exist`)
+        }
+        const obj = {
+            ...worker,
+        }
+        if(obj?.workingHours && obj?.workingHours?.length > 0){
+            const workingHours = _dbWorker?.workingHours?.map((wh:WorkingDayType) => {
+                const found = obj?.workingHours?.find(o => o.day === wh?.day)
+                if(found) {
+                    return {
+                        ...found,
+                        day: found?.day?.toUpperCase() as DaysOfTheWeekType
+                    }
+                }
+                return {
+                    ...wh,
+                    day: wh?.day?.toUpperCase() as DaysOfTheWeekType
+                }
+            })
+            obj.workingHours = workingHours
+        }
+        const [_w, _e] = await Promise.all([xata.db.workers.update(id, obj), xata.db.everyone.update(_dbEveryone.id, {
+            firstName: obj?.firstName??"",
+            lastName: obj?.lastName??"",
+            companyName: obj?.companyName??"",
+        })])
         return { data: _w as WorkerType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }

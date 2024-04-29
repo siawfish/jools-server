@@ -26,6 +26,13 @@ const tables = [
       { name: "pushToken", type: "text" },
       { name: "skills", type: "json" },
       { name: "status", type: "int", notNull: true, defaultValue: "1" },
+      {
+        name: "workingHours",
+        type: "json",
+        notNull: true,
+        defaultValue:
+          '[\n    {\n        "day": "MONDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "TUESDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "WEDNESDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "THURSDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "FRIDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "SATURDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "SUNDAY",\n        "start": "08:00",\n        "end": "17:00"\n    }\n]',
+      },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },

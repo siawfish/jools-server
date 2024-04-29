@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { deleteWorker, getWorkerById, updateWorker } from '../../../services/workers/index.js';
 import { errorResponse } from '../../../helpers/errorHandlers.js';
 import { WorkerType } from '../../../services/workers/types.js';
-import { validateLocation, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
+import { validateLocation, validateSkills, validateWorkRate, validateWorkingHours } from '../../../helpers/constants.js';
 
 export const getWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -29,11 +29,11 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
 export const updateWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = req.params as { id: string };
-        const { firstName, lastName, companyName, location, workRate, skills } : Partial<WorkerType> = req.body;
+        const { firstName, lastName, companyName, location, workRate, skills, workingHours } : Partial<WorkerType> = req.body;
         if(!id) {
             throw new Error("id is required")
         }
-        if(!firstName && !lastName && !companyName && !location && !workRate && !skills) {
+        if(!firstName && !lastName && !companyName && !location && !workRate && !skills && !workingHours) {
             throw new Error("Only firstName, lastName, companyName, location, workRate and skills are allowed")
         }
         const worker: Partial<WorkerType> = {};
@@ -41,19 +41,19 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
             if(!firstName.trim()) {
                 throw new Error("First Name is required")
             }
-            worker.firstName = firstName
+            worker.firstName = firstName.trim()
         }
         if(lastName){
             if(!lastName.trim()) {
                 throw new Error("Last Name is required")
             }
-            worker.lastName = lastName
+            worker.lastName = lastName.trim()
         }
         if(companyName){
             if(!companyName.trim()) {
                 throw new Error("Company Name is required")
             }
-            worker.companyName = companyName
+            worker.companyName = companyName.trim()
         }
         if(location) {
             if(!validateLocation(location)) {
@@ -68,12 +68,22 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
             worker.workRate = workRate
         }
         if(skills) {
-            if(skills.length) {
-                if(!validateSkills(skills)) {
-                    throw new Error("Invalid skills")
-                }
-                worker.skills = skills
+            if(!skills.length) {
+                throw new Error("Skills must be an array")
             }
+            if(!validateSkills(skills)) {
+                throw new Error("Invalid skills")
+            }
+            worker.skills = skills
+        }
+        if(workingHours) {
+            if(!workingHours.length) {
+                throw new Error("Working hours must be an array")
+            }
+            if(!validateWorkingHours(workingHours)) {
+                throw new Error("Invalid working hours")
+            }
+            worker.workingHours = workingHours
         }
         const { error, data } = await updateWorker(id, worker);
         if(error) {
