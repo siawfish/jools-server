@@ -57,16 +57,17 @@ export const validateWorkingHours = (workingHours: WorkingDayType[]): boolean =>
       if (typeof workingHour.start !== "string") return false;
       if (typeof workingHour.end !== "string") return false;
       if (
-        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.MONDAY ||
-        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.TUESDAY ||
-        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.WEDNESDAY ||
-        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.THURSDAY ||
-        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.FRIDAY ||
-        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SATURDAY ||
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.MONDAY &&
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.TUESDAY &&
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.WEDNESDAY &&
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.THURSDAY &&
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.FRIDAY &&
+        workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SATURDAY &&
         workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SUNDAY
       ) return false;
       const [startHour, startMinute] = workingHour.start.split(":");
       const [endHour, endMinute] = workingHour.end.split(":");
+      console.log(startHour, startMinute, endHour, endMinute);
       if (parseInt(startHour) < 0 || parseInt(startHour) > 23) return false;
       if (parseInt(startMinute) < 0 || parseInt(startMinute) > 59) return false;
       if (parseInt(endHour) < 0 || parseInt(endHour) > 23) return false;
@@ -88,9 +89,6 @@ export const validateResources = (resources: ResourceType[]): boolean => {
     return true;
 };
 
-// format db error message
-// db error format invalid record: column [phoneNumber]: is not unique
-// write function that takes in the error message and returns the column and the message
 export const formatDbError = (error: string, suffix?: string): string => {
     const [_, column, message] = error.split(":");
     const columnName = column.split("[")[1].split("]")[0]; // Extracts 'phoneNumber' from 'column [phoneNumber]'
@@ -101,9 +99,9 @@ export const formatDbError = (error: string, suffix?: string): string => {
 };
 
 export const convertCamelCaseToSentence = (camelCase: string): string => {
-    return camelCase.replace(/([A-Z])/g, " $1").toLowerCase();
+  return camelCase.replace(/([A-Z])/g, " $1").toLowerCase();
 }
 
 export const validateUploadResourceType = (type: string): boolean => {
-    return type?.toLowerCase() === ResourceUploadType.COMMENTS.toLowerCase() || type?.toLowerCase() === ResourceUploadType.DOCUMENTS.toLowerCase() || type?.toLowerCase() === ResourceUploadType.PORTFOLIO.toLowerCase();
+  return type?.toLowerCase() === ResourceUploadType.COMMENTS.toLowerCase() || type?.toLowerCase() === ResourceUploadType.DOCUMENTS.toLowerCase() || type?.toLowerCase() === ResourceUploadType.PORTFOLIO.toLowerCase();
 }

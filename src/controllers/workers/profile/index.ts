@@ -28,10 +28,10 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
 
 export const updateWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id }  = req.params as { id: string };
+        const { id }  = res.locals?.user;
         const { firstName, lastName, companyName, location, workRate, skills, workingHours } : Partial<WorkerType> = req.body;
         if(!id) {
-            throw new Error("id is required")
+            throw new Error("Authentication failed")
         }
         if(!firstName && !lastName && !companyName && !location && !workRate && !skills && !workingHours) {
             throw new Error("Only firstName, lastName, companyName, location, workRate and skills are allowed")
@@ -103,7 +103,7 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
 
 export const deleteWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id }  = req.params as { id: string };
+        const { id }  = res.locals?.user;
         if(!id) {
             throw new Error("Authentication failed")
         }
@@ -116,6 +116,32 @@ export const deleteWorkerController = async (req: Request, res: Response, next: 
         }
         return res.status(200).json({
             message: "Worker deleted successfully",
+            data
+        })
+    } catch (error:any) {
+        errorResponse(error?.message, res, 400)
+    }
+}
+
+export const updatePushTokenController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id }  = res.locals?.user;
+        const { pushToken } = req.body;
+        if(!id) {
+            throw new Error("Authentication failed")
+        }
+        if(!pushToken) {
+            throw new Error("pushToken is required")
+        }
+        const { error, data } = await updateWorker(id, { pushToken });
+        if(error) {
+            throw new Error(error)
+        }
+        if(!data) {
+            throw new Error("An error occurred")
+        }
+        return res.status(200).json({
+            message: "Push token updated successfully",
             data
         })
     } catch (error:any) {

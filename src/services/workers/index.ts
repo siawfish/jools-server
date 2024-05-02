@@ -78,11 +78,11 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
         if(!_dbWorker) {
             throw new Error(`User with id "${id}" does not exist`)
         }
-        if(_dbWorker.id !== id) {
-            throw new Error("You are not authorized to perform this action")
-        }
         if(!_dbEveryone) {
             throw new Error(`User with id "${id}" does not exist`)
+        }
+        if(_dbWorker.id !== id) {
+            throw new Error("You are not authorized to perform this action")
         }
         const obj = {
             ...worker,
@@ -103,11 +103,24 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
             })
             obj.workingHours = workingHours
         }
-        const [_w, _e] = await Promise.all([xata.db.workers.update(id, obj), xata.db.everyone.update(_dbEveryone.id, {
-            firstName: obj?.firstName??"",
-            lastName: obj?.lastName??"",
-            companyName: obj?.companyName??"",
-        })])
+        if(!obj?.firstName && !obj?.lastName && !obj?.companyName) {
+            const _w = await xata.db.workers.update(id, obj);
+            return { data: _w as WorkerType };
+        }
+        const everyOneObj:Partial<WorkerType> = {}
+        if(obj?.firstName) {
+            everyOneObj.firstName = obj?.firstName
+        }
+        if(obj?.lastName) {
+            everyOneObj.lastName = obj?.lastName
+        }
+        if(obj?.companyName) {
+            everyOneObj.companyName = obj?.companyName
+        }
+        if(obj?.pushToken) {
+            everyOneObj.pushToken = obj?.pushToken
+        }
+        const [_w, _e] = await Promise.all([xata.db.workers.update(_dbWorker?.id, obj), xata.db.everyone.update(_dbEveryone?.id, everyOneObj)])
         return { data: _w as WorkerType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
