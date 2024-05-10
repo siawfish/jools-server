@@ -10,6 +10,9 @@ export const uploadImages = async (images: ExpressFile[], options?:UploadApiOpti
                 throw new Error("At least one image is required")
             }
             for (const image of images) {
+                if (!image.mimetype.startsWith('image')) {
+                    throw new Error("Only images are allowed")
+                }
                 const result = await cloudinary.uploader.upload(image.tempFilePath, {
                     resource_type: 'image',
                     ...options
@@ -35,6 +38,9 @@ export const uploadVideos = async (videos:ExpressFile[], options?:UploadApiOptio
                 throw new Error("At least one video is required")
             }
             for (const video of videos) {
+                if (!video.mimetype.startsWith('video')) {
+                    throw new Error("Only videos are allowed")
+                }
                 const result = await cloudinary.uploader.upload(video.tempFilePath, {
                     resource_type: 'video',
                     ...options

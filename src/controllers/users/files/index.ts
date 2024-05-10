@@ -31,9 +31,9 @@ export const uploadFilesController = async (req: any, res: any, next: any) => {
             }
             const options: { public_id?: string; folder?: string; } = {}
             if(type?.toLowerCase() === ResourceUploadType.AVATAR?.toLowerCase()){
-                options.public_id = `workers/avatars/${res.locals.user.id}`
+                options.public_id = `clients/avatars/${res.locals.user.id}`
             } else {
-                options.folder= `workers/images/${type?.toLowerCase()}/${res.locals.user.id}`
+                options.folder= `clients/images/${type?.toLowerCase()}/${res.locals.user.id}`
             }
             const { data, error } = await uploadImages(imagesArray, options)
             if (error) {
@@ -50,7 +50,7 @@ export const uploadFilesController = async (req: any, res: any, next: any) => {
                 throw new Error("At least one video is required")
             }
             const options = {
-                folder: `workers/videos/portfolio/${res.locals.user.id}`
+                folder: `clients/videos/portfolio/${res.locals.user.id}`
             }
             const { error, data } = await uploadVideos(videosArray, options)
             if (error) {

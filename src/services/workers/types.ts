@@ -1,4 +1,5 @@
 export interface WorkerType {
+    avatar?: string;
     firstName?: string;
     lastName?: string;
     companyName?: string;

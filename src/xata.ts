@@ -33,6 +33,7 @@ const tables = [
         defaultValue:
           '[\n    {\n        "day": "MONDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "TUESDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "WEDNESDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "THURSDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "FRIDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "SATURDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "SUNDAY",\n        "start": "08:00",\n        "end": "17:00"\n    }\n]',
       },
+      { name: "avatar", type: "string" },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
@@ -76,6 +77,8 @@ const tables = [
       { name: "location", type: "json" },
       { name: "acceptedTerms", type: "json" },
       { name: "pushToken", type: "text" },
+      { name: "status", type: "int", notNull: true, defaultValue: "1" },
+      { name: "avatar", type: "string" },
     ],
     revLinks: [
       { column: "user", table: "bookings" },
@@ -129,6 +132,7 @@ const tables = [
       { name: "pushToken", type: "text" },
       { name: "type", type: "string" },
       { name: "status", type: "int", notNull: true, defaultValue: "1" },
+      { name: "avatar", type: "string" },
     ],
     revLinks: [
       { column: "author", table: "comments" },

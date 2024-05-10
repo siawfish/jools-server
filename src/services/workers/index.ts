@@ -103,7 +103,7 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
             })
             obj.workingHours = workingHours
         }
-        if(!obj?.firstName && !obj?.lastName && !obj?.companyName) {
+        if(!obj?.firstName && !obj?.lastName && !obj?.companyName && !obj?.avatar && !obj?.pushToken) {
             const _w = await xata.db.workers.update(id, obj);
             return { data: _w as WorkerType };
         }
@@ -120,6 +120,9 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
         if(obj?.pushToken) {
             everyOneObj.pushToken = obj?.pushToken
         }
+        if(obj?.avatar) {
+            everyOneObj.avatar = obj?.avatar
+        }
         const [_w, _e] = await Promise.all([xata.db.workers.update(_dbWorker?.id, obj), xata.db.everyone.update(_dbEveryone?.id, everyOneObj)])
         return { data: _w as WorkerType }
     } catch (error:any) {
@@ -129,13 +132,16 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
 
 export const deleteWorker = async (id: string): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const worker = await xata.db.workers.update(id, { status: 0 })
-        const updatedWorker = await xata.db.everyone.filter({ userId: id }).getFirst()
-        if(updatedWorker) {
-            await xata.db.everyone.update(updatedWorker.id, { status: 0 })
+        const [_w, _e] = await Promise.all([xata.db.workers.filter({ id }).getFirst(), xata.db.everyone.filter({ userId: id }).getFirst()]);
+        if(!_w || !_e) {
+            throw new Error(`User with id "${id}" does not exist`)
         }
+        if(_w.id !== id) {
+            throw new Error("You are not authorized to perform this action")
+        }
+        const [worker] = await Promise.all([xata.db.workers.update(_w.id, { status: 0 }), xata.db.everyone.update(_e.id, { status: 0 })])
         return { data: worker as WorkerType }
     } catch (error:any) {
-        return { error: formatDbError(error?.message) }
+        return { error: error?.message }
     }
 }

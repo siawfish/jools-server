@@ -1,13 +1,25 @@
-import authRoutes from './workers/auth.js'
-import profileRoutes from './workers/profile.js'
+import workerAuthRoutes from './workers/auth.js'
+import userAuthRoutes from './users/auth.js'
+import workerProfileRoutes from './workers/profile.js'
 import portfolioRoutes from './workers/portfolio.js'
-import filesRoutes from './workers/files.js'
+import workerFilesRoutes from './workers/files.js'
+import usersFilesRoutes from './users/files.js'
+import usersProfileRoutes from './users/profile.js'
 
-const routes = {
-    workersAuthRoutes: authRoutes,
-    workersProfileRoutes: profileRoutes,
+const workerRouter = {
+    workersAuthRoutes: workerAuthRoutes,
+    workersProfileRoutes: workerProfileRoutes,
     workersPortfolioRoutes: portfolioRoutes,
-    workersFilesRoutes: filesRoutes
+    workersFilesRoutes: workerFilesRoutes
 }
 
-export default routes
+const userRouter = {
+    usersAuthRoutes: userAuthRoutes,
+    usersFilesRoutes: usersFilesRoutes,
+    usersProfileRoutes: usersProfileRoutes,
+}
+
+export {
+    workerRouter,
+    userRouter
+}

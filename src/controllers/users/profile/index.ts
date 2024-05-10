@@ -1,16 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
-import { deleteWorker, getWorkerById, updateWorker } from '../../../services/workers/index.js';
 import { errorResponse } from '../../../helpers/errorHandlers.js';
-import { WorkerType } from '../../../services/workers/types.js';
 import { validateLocation, validateSkills, validateWorkRate, validateWorkingHours } from '../../../helpers/constants.js';
+import { deleteClient, getUserById, updateClient } from '../../../services/users/index.js';
+import { ClientType } from '../../../services/users/type.js';
 
-export const getWorkerController = async (req: Request, res: Response, next: NextFunction) => {
+export const getUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = req.params as { id: string };
         if(!id) {
             throw new Error("id is required")
         }
-        const { error, data } = await getWorkerById(id);
+        const { error, data } = await getUserById(id);
         if(error) {
             throw new Error(error)
         }
@@ -18,7 +18,7 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
             throw new Error("An error occurred")
         }
         return res.status(200).json({
-            message: "Worker fetched successfully",
+            message: "User fetched successfully",
             data
         })
     } catch (error:any) {
@@ -26,71 +26,41 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
     }
 }
 
-export const updateWorkerController = async (req: Request, res: Response, next: NextFunction) => {
+export const updateUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = res.locals?.user;
-        const { firstName, lastName, companyName, location, workRate, skills, workingHours, avatar } : Partial<WorkerType> = req.body;
+        const { firstName, lastName, location, avatar } : Partial<ClientType> = req.body;
         if(!id) {
             throw new Error("Authentication failed")
         }
-        if(!firstName && !lastName && !companyName && !location && !workRate && !skills && !workingHours && !avatar) {
-            throw new Error("Only firstName, lastName, companyName, location, workRate, avatar, workingHours and skills are allowed")
+        if(!firstName && !lastName && !location && !avatar) {
+            throw new Error("Only firstName, lastName, location and avatar can be updated")
         }
-        const worker: Partial<WorkerType> = {};
+        const client: Partial<ClientType> = {};
         if(firstName){
             if(!firstName.trim()) {
                 throw new Error("First Name is required")
             }
-            worker.firstName = firstName.trim()
+            client.firstName = firstName.trim()
         }
         if(lastName){
             if(!lastName.trim()) {
                 throw new Error("Last Name is required")
             }
-            worker.lastName = lastName.trim()
-        }
-        if(companyName){
-            if(!companyName.trim()) {
-                throw new Error("Company Name is required")
-            }
-            worker.companyName = companyName.trim()
+            client.lastName = lastName.trim()
         }
         if(location) {
             if(!validateLocation(location)) {
                 throw new Error("Invalid location")
             }
-            worker.location = location
-        }
-        if(workRate) {
-            if(!validateWorkRate(workRate)) {
-                throw new Error("Invalid work rate")
-            }
-            worker.workRate = workRate
-        }
-        if(skills) {
-            if(!skills.length) {
-                throw new Error("Skills must be an array")
-            }
-            if(!validateSkills(skills)) {
-                throw new Error("Invalid skills")
-            }
-            worker.skills = skills
-        }
-        if(workingHours) {
-            if(!workingHours.length) {
-                throw new Error("Working hours must be an array")
-            }
-            if(!validateWorkingHours(workingHours)) {
-                throw new Error("Invalid working hours")
-            }
-            worker.workingHours = workingHours
+            client.location = location
         }
         if(avatar) {
             if(!avatar.trim()) {
                 throw new Error("Avatar is required")
             }
         }
-        const { error, data } = await updateWorker(id, worker);
+        const { error, data } = await updateClient(id, client);
         if(error) {
             throw new Error(error)
         }
@@ -98,7 +68,7 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
             throw new Error("An error occurred")
         }
         return res.status(200).json({
-            message: "Worker updated successfully",
+            message: "User updated successfully",
             data
         })
     } catch (error:any) {
@@ -106,13 +76,13 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
     }
 }
 
-export const deleteWorkerController = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = res.locals?.user;
         if(!id) {
             throw new Error("Authentication failed")
         }
-        const { error, data } = await deleteWorker(id);
+        const { error, data } = await deleteClient(id);
         if(error) {
             throw new Error(error)
         }
@@ -120,7 +90,7 @@ export const deleteWorkerController = async (req: Request, res: Response, next: 
             throw new Error("An error occurred")
         }
         return res.status(200).json({
-            message: "Worker deleted successfully",
+            message: "User deleted successfully",
             data
         })
     } catch (error:any) {
@@ -138,7 +108,7 @@ export const updatePushTokenController = async (req: Request, res: Response, nex
         if(!pushToken) {
             throw new Error("pushToken is required")
         }
-        const { error, data } = await updateWorker(id, { pushToken });
+        const { error, data } = await updateClient(id, { pushToken });
         if(error) {
             throw new Error(error)
         }

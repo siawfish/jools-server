@@ -18,5 +18,6 @@ export interface RequestFiles {
 export enum ResourceUploadType {
     PORTFOLIO = "PORTFOLIO",
     DOCUMENTS = "DOCUMENTS",
-    COMMENTS = "COMMENTS"
+    COMMENTS = "COMMENTS",
+    AVATAR = "AVATAR",
 }
