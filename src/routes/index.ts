@@ -5,6 +5,7 @@ import portfolioRoutes from './workers/portfolio.js'
 import workerFilesRoutes from './workers/files.js'
 import usersFilesRoutes from './users/files.js'
 import usersProfileRoutes from './users/profile.js'
+import usersBookingRoutes from './users/bookings.js'
 
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
@@ -17,6 +18,7 @@ const userRouter = {
     usersAuthRoutes: userAuthRoutes,
     usersFilesRoutes: usersFilesRoutes,
     usersProfileRoutes: usersProfileRoutes,
+    usersBookingRoutes: usersBookingRoutes
 }
 
 export {

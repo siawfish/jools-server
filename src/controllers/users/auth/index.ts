@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
+import { validateAcceptedTerms, validateEmail, validateLocation, validatePhoneNumber, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp/index.js';
 import sendSms, { constructVerificationSms } from '../../../services/sms/index.js';
 import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
-import { JwtPayload } from '../../../services/jwt/types';
 import { createUser, getUserById, getUserByPhoneNumber } from '../../../services/users';
 import { ClientType } from '../../../services/users/type';
 import { UserTypes, VerifyOTPpayloadType } from '../../../services/workers/types';

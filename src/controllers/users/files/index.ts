@@ -3,8 +3,9 @@ import { errorResponse } from "../../../helpers/errorHandlers";
 import { uploadImages, uploadVideos } from "../../../services/files";
 import { RequestFiles, ResourceUploadType } from "../../../services/files/types";
 import { ResourceType } from "../../../services/portfolio/types";
+import { NextFunction, Request, Response } from 'express';
 
-export const uploadFilesController = async (req: any, res: any, next: any) => {
+export const uploadFilesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if(!res?.locals?.user?.id){
             throw new Error("Invalid authentication token")

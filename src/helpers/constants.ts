@@ -122,3 +122,16 @@ export const validateUploadResourceType = (type: string): boolean => {
     type?.toLowerCase() === ResourceUploadType.AVATAR.toLowerCase()
   );
 };
+
+export const validateDayStartEnd = (day: Date, start: Date, end: Date) => {
+  if (isNaN(day.getTime()) || isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return false;
+  }
+  if (start.getTime() > end.getTime()) {
+    return false;
+  }
+  if (start.getDate() !== end.getDate()) {
+    return false;
+  }
+  return true;
+};

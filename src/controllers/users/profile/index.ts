@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers.js';
-import { validateLocation, validateSkills, validateWorkRate, validateWorkingHours } from '../../../helpers/constants.js';
+import { validateLocation } from '../../../helpers/constants.js';
 import { deleteClient, getUserById, updateClient } from '../../../services/users/index.js';
 import { ClientType } from '../../../services/users/type.js';
 

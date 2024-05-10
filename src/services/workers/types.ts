@@ -1,23 +1,23 @@
 export interface WorkerType {
-    avatar?: string;
-    firstName?: string;
-    lastName?: string;
-    companyName?: string;
-    phoneNumber: string;
-    location: LocationType;
-    workRate: number;
-    acceptedTerms: AcceptedTermsType;
-    type: AccountTypes;
-    documents?: DocumentsType;
-    email: string;
-    skills: SkillType[];
-    score?: number;
-    rating?: number;
-    isVerified?: boolean;
-    pushToken?: string;
-    workingHours?: WorkingDayType[];
-    id?: string;
-  }
+  avatar?: string;
+  firstName?: string;
+  lastName?: string;
+  companyName?: string;
+  phoneNumber: string;
+  location: LocationType;
+  workRate: number;
+  acceptedTerms: AcceptedTermsType;
+  type: AccountTypes;
+  documents?: DocumentsType;
+  email: string;
+  skills: SkillType[];
+  score?: number;
+  rating?: number;
+  isVerified?: boolean;
+  pushToken?: string;
+  workingHours?: WorkingDayType[];
+  id?: string;
+}
 
   export interface WorkingDayType {
     day: DaysOfTheWeekType;

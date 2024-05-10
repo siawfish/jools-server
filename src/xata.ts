@@ -37,7 +37,7 @@ const tables = [
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
-      { column: "worker", table: "bookings" },
+      { column: "workerId", table: "bookings" },
       { column: "worker", table: "messages" },
     ],
   },
@@ -65,7 +65,6 @@ const tables = [
       { name: "name", type: "string", unique: true },
       { name: "icon", type: "string" },
     ],
-    revLinks: [{ column: "skill", table: "bookings" }],
   },
   {
     name: "users",
@@ -81,7 +80,7 @@ const tables = [
       { name: "avatar", type: "string" },
     ],
     revLinks: [
-      { column: "user", table: "bookings" },
+      { column: "userId", table: "bookings" },
       { column: "user", table: "messages" },
       { column: "reviewer", table: "reviews" },
     ],
@@ -89,14 +88,23 @@ const tables = [
   {
     name: "bookings",
     columns: [
-      { name: "startedAt", type: "datetime" },
-      { name: "endedAt", type: "datetime" },
-      { name: "timelines", type: "json" },
-      { name: "worker", type: "link", link: { table: "workers" } },
-      { name: "user", type: "link", link: { table: "users" } },
-      { name: "skill", type: "link", link: { table: "skills" } },
-      { name: "messages", type: "link", link: { table: "messages" } },
-      { name: "reviews", type: "link", link: { table: "reviews" } },
+      { name: "start", type: "datetime" },
+      { name: "end", type: "datetime" },
+      { name: "workerId", type: "link", link: { table: "workers" } },
+      { name: "userId", type: "link", link: { table: "users" } },
+      { name: "day", type: "datetime", notNull: true, defaultValue: "now" },
+      {
+        name: "status",
+        type: "string",
+        notNull: true,
+        defaultValue: '"PENDING"',
+      },
+      { name: "fee", type: "float", notNull: true, defaultValue: "0" },
+      { name: "description", type: "text" },
+      { name: "media", type: "json" },
+      { name: "estimatedFee", type: "float", notNull: true, defaultValue: "0" },
+      { name: "skillset", type: "json" },
+      { name: "timelines", type: "json", notNull: true, defaultValue: "[]" },
     ],
     revLinks: [{ column: "booking", table: "reviews" }],
   },
@@ -108,7 +116,6 @@ const tables = [
       { name: "message", type: "text" },
       { name: "attachments", type: "file[]" },
     ],
-    revLinks: [{ column: "messages", table: "bookings" }],
   },
   {
     name: "comments",
@@ -147,7 +154,6 @@ const tables = [
       { name: "attachments", type: "file[]" },
       { name: "reviewer", type: "link", link: { table: "users" } },
     ],
-    revLinks: [{ column: "reviews", table: "bookings" }],
   },
   {
     name: "support",

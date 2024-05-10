@@ -34,6 +34,7 @@ app.use('/api/workers', workerRouter.workersFilesRoutes);
 app.use('/api/users/auth', userRouter.usersAuthRoutes);
 app.use('/api/users', userRouter.usersFilesRoutes);
 app.use('/api/users', userRouter.usersProfileRoutes);
+app.use('/api/users', userRouter.usersBookingRoutes);
 
 
 app.listen(config.port, ()=>console.log(`App is listening on url ${config.host}:${config.port}`));
