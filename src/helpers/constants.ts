@@ -6,6 +6,7 @@ import {
   DocumentsType,
   LocationType,
   SkillType,
+  UserTypes,
   WorkingDayType,
 } from "../services/workers/types";
 
@@ -135,3 +136,11 @@ export const validateDayStartEnd = (day: Date, start: Date, end: Date) => {
   }
   return true;
 };
+
+export const validateUserRole = (role: string): boolean => {
+  return (
+    role === UserTypes.ADMIN ||
+    role === UserTypes.SUPER_ADMIN ||
+    role === UserTypes.USER
+  );
+}

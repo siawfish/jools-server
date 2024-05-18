@@ -6,6 +6,8 @@ import workerFilesRoutes from './workers/files.js'
 import usersFilesRoutes from './users/files.js'
 import usersProfileRoutes from './users/profile.js'
 import usersBookingRoutes from './users/bookings.js'
+import adminAuthRoutes from './admin/auth.js'
+import adminProfileRoutes from './admin/profile.js'
 
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
@@ -21,7 +23,13 @@ const userRouter = {
     usersBookingRoutes: usersBookingRoutes
 }
 
+const adminRouter = {
+    adminAuthRoutes: adminAuthRoutes,
+    adminProfileRoutes: adminProfileRoutes
+}
+
 export {
     workerRouter,
-    userRouter
+    userRouter,
+    adminRouter
 }

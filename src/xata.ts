@@ -64,6 +64,7 @@ const tables = [
     columns: [
       { name: "name", type: "string", unique: true },
       { name: "icon", type: "string" },
+      { name: "properties", type: "json", notNull: true, defaultValue: "{}" },
     ],
   },
   {
@@ -173,6 +174,17 @@ const tables = [
       { name: "message", type: "text" },
     ],
   },
+  {
+    name: "admin",
+    columns: [
+      { name: "firstName", type: "string" },
+      { name: "lastName", type: "string" },
+      { name: "role", type: "string" },
+      { name: "email", type: "email", unique: true },
+      { name: "phoneNumber", type: "string", unique: true },
+      { name: "status", type: "int", notNull: true, defaultValue: "1" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -214,6 +226,9 @@ export type SupportRecord = Support & XataRecord;
 export type Contacts = InferredTypes["contacts"];
 export type ContactsRecord = Contacts & XataRecord;
 
+export type Admin = InferredTypes["admin"];
+export type AdminRecord = Admin & XataRecord;
+
 export type DatabaseSchema = {
   workers: WorkersRecord;
   otp: OtpRecord;
@@ -227,6 +242,7 @@ export type DatabaseSchema = {
   reviews: ReviewsRecord;
   support: SupportRecord;
   contacts: ContactsRecord;
+  admin: AdminRecord;
 };
 
 const DatabaseClient = buildClient();

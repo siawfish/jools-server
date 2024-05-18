@@ -39,6 +39,8 @@ export interface WorkerType {
   export enum UserTypes {
     WORKER = "WORKER",
     USER = "USER",
+    ADMIN = "ADMIN",
+    SUPER_ADMIN = "SUPER_ADMIN",
   }
 
   export enum AccountTypes {
