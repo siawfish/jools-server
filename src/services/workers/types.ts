@@ -5,7 +5,6 @@ export interface WorkerType {
   companyName?: string;
   phoneNumber: string;
   location: LocationType;
-  workRate: number;
   acceptedTerms: AcceptedTermsType;
   type: AccountTypes;
   documents?: DocumentsType;

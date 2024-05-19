@@ -12,10 +12,8 @@ const tables = [
     columns: [
       { name: "firstName", type: "string" },
       { name: "lastName", type: "string" },
-      { name: "companyName", type: "string" },
       { name: "phoneNumber", type: "string", unique: true },
       { name: "location", type: "json" },
-      { name: "workRate", type: "float" },
       { name: "acceptedTerms", type: "json" },
       { name: "type", type: "string" },
       { name: "documents", type: "json" },
@@ -34,6 +32,7 @@ const tables = [
       },
       { name: "avatar", type: "string" },
       { name: "skills", type: "multiple" },
+      { name: "companyName", type: "string", unique: true },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
@@ -64,9 +63,15 @@ const tables = [
     columns: [
       { name: "name", type: "string", unique: true },
       { name: "icon", type: "string" },
-      { name: "properties", type: "json", notNull: true, defaultValue: "{}" },
       { name: "description", type: "text" },
       { name: "createdBy", type: "link", link: { table: "admin" } },
+      {
+        name: "properties",
+        type: "json",
+        notNull: true,
+        defaultValue:
+          '[{\n  "name": "Hourly Rate",\n  "description": "Your rate for an hour of work",\n  "rate": 2.5\n}]',
+      },
     ],
   },
   {

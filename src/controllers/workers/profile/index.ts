@@ -45,12 +45,12 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
 export const updateWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = res.locals?.user;
-        const { firstName, lastName, companyName, location, workRate, skills, workingHours, avatar } : Partial<WorkerType> = req.body;
+        const { firstName, lastName, companyName, location, skills, workingHours, avatar } : Partial<WorkerType> = req.body;
         if(!id) {
             throw new Error("Authentication failed")
         }
-        if(!firstName && !lastName && !companyName && !location && !workRate && !skills && !workingHours && !avatar) {
-            throw new Error("Only firstName, lastName, companyName, location, workRate, avatar, workingHours and skills are allowed")
+        if(!firstName && !lastName && !companyName && !location && !skills && !workingHours && !avatar) {
+            throw new Error("Only firstName, lastName, companyName, location, avatar, workingHours and skills are allowed")
         }
         const worker: Partial<WorkerType> = {};
         if(firstName){
@@ -76,12 +76,6 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
                 throw new Error("Invalid location")
             }
             worker.location = location
-        }
-        if(workRate) {
-            if(!validateWorkRate(workRate)) {
-                throw new Error("Invalid work rate")
-            }
-            worker.workRate = workRate
         }
         if(skills) {
             if(!skills.length) {

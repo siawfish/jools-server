@@ -4,5 +4,11 @@ export interface SkillType {
     description: string;
     icon: string;
     createdBy: any;
-    properties: any;
+    properties: SkillProperties[];
+}
+
+export interface SkillProperties {
+    name: string;
+    description: string;
+    rate: number;
 }

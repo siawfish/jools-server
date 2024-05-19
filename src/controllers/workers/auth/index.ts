@@ -17,7 +17,6 @@ export const registerController = async (req: Request, res: Response, next: Next
             companyName,
             phoneNumber,
             location,
-            workRate,
             acceptedTerms,
             type,
             documents,
@@ -57,12 +56,6 @@ export const registerController = async (req: Request, res: Response, next: Next
                 throw new Error("Documents is required")
             }
         }
-        if(!workRate) {
-            throw new Error("Work Rate is required")
-        }
-        if(!validateWorkRate(workRate)) {
-            throw new Error("Invalid Work Rate")
-        }
         if(!validateSkills(skills as string[])) {
             throw new Error("Invalid Skills")
         }
@@ -89,7 +82,6 @@ export const registerController = async (req: Request, res: Response, next: Next
             companyName,
             phoneNumber,
             location,
-            workRate,
             acceptedTerms,
             type,
             documents,

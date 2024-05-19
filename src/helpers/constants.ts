@@ -1,5 +1,6 @@
 import { ResourceUploadType } from "../services/files/types";
 import { ResourceType } from "../services/portfolio/types";
+import { SkillProperties } from "../services/skills/types";
 import {
   AcceptedTermsType,
   DaysOfTheWeekType,
@@ -143,8 +144,16 @@ export const validateUserRole = (role: string): boolean => {
   );
 }
 
-export const validateSkillProperties = (skill: SkillType): boolean => {
-  if (typeof skill !== "object") return false;
-  if (Object.keys(skill).length < 1) return false;
+export const validateSkillProperties = (properties: SkillProperties[]): boolean => {
+  if (typeof properties !== "object") return false;
+  if (Object.keys(properties).length < 1) return false;
+  // check if name and rate are present
+  properties.forEach((property) => {
+    if (!property.name || !property.rate) return false;
+    if (typeof property.name !== "string") return false;
+    if (typeof property.rate !== "number") return false;
+    if (!validateWorkRate(property.rate)) return false;
+  });
+
   return true;
 }
