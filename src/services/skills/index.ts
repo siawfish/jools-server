@@ -28,7 +28,7 @@ export const getSkillById = async (id: string): Promise<{ error?: string; data?:
     try {
         const data = await xata.db.skills.filter({ id }).getFirst();
         if(!data) {
-            throw new Error("Skill not found")
+            throw new Error(`Skill with id "${id}" does not exist`)
         }
         return { data: data as SkillType }
     } catch (error:any) {
@@ -40,7 +40,7 @@ export const updateSkill = async (id: string, skill: SkillType): Promise<{ error
     try {
         const data = await xata.db.skills.update(id, skill);
         if(!data) {
-            throw new Error("Skill not found")
+            throw new Error(`Skill with id "${id}" does not exist`)
         }
         return { data: data as SkillType }
     } catch (error:any) {
