@@ -48,6 +48,9 @@ export const validateWorkRate = (workRate: number): boolean => {
 export const validateSkills = (skills: string[]): boolean => {
   if (!Array.isArray(skills)) return false;
   if (skills.length < 1) return false;
+  for (const skill of skills) {
+    if (typeof skill !== "string") return false;
+  }
   return true;
 };
 

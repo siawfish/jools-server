@@ -14,7 +14,7 @@ export interface BookingType {
     description: string;
     media: ResourceType[];
     estimatedFee: number;
-    skillset: SkillType[];
+    skills: string[];
 }
 
 export enum BookingStatuses {

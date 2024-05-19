@@ -9,8 +9,8 @@ export const createBookingController = async (req: Request, res: Response, next:
         if(!res?.locals?.user?.id){
             throw new Error("Invalid authentication token")
         }
-        const { workerId, day, start, end, description, media, estimatedFee, skillset } : BookingType = req.body;
-        if(!workerId && !day && !start && !end && !description && !media && !estimatedFee && !skillset){
+        const { workerId, day, start, end, description, media, estimatedFee, skills } : BookingType = req.body;
+        if(!workerId && !day && !start && !end && !description && !media && !estimatedFee && !skills){
             throw new Error("WorkerId, day, start, end, description, media, estimatedFee and skillset are required")
         }
         if(!validateDayStartEnd(day, start, end)){
@@ -22,13 +22,12 @@ export const createBookingController = async (req: Request, res: Response, next:
         if(estimatedFee < 0){
             throw new Error("Invalid estimated fee")
         }
-        if(!validateSkills(skillset)){
+        if(!validateSkills(skills)){
             throw new Error("Invalid skillset")
         }
         if(!workerId){
             throw new Error("Worker ID is required")
         }
-       
         if(!description || description.trim().length < 1){
             throw new Error("Description is required")
         }
@@ -41,7 +40,7 @@ export const createBookingController = async (req: Request, res: Response, next:
             description,
             media,
             estimatedFee,
-            skillset,
+            skills,
             timelines: [
                 {
                     timestamp: new Date(),

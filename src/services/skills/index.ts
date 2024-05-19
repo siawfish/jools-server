@@ -32,7 +32,7 @@ export const getSkillById = async (id: string): Promise<{ error?: string; data?:
         }
         return { data: data as SkillType }
     } catch (error:any) {
-        return { error: formatDbError(error?.message) }
+        return { error: error?.message }
     }
 }
 

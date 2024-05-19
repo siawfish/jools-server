@@ -64,7 +64,7 @@ export const registerController = async (req: Request, res: Response, next: Next
             throw new Error("Invalid Work Rate")
         }
         if(!validateSkills(skills as string[])) {
-            throw new Error("Skills is required")
+            throw new Error("Invalid Skills")
         }
         const skillsArr = [] as SkillType[];
         const errorsArr = [] as string[];
