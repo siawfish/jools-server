@@ -16,8 +16,16 @@ export interface WorkerType {
   pushToken?: string;
   workingHours?: WorkingDayType[];
   id?: string;
+  properties: SkillProperties[];
 }
 
+
+export interface SkillProperties {
+  skillId: string;
+  name: string;
+  description: string;
+  rate: number;
+}
   export interface WorkingDayType {
     day: DaysOfTheWeekType;
     start: string;

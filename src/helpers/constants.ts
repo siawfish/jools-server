@@ -1,12 +1,11 @@
 import { ResourceUploadType } from "../services/files/types";
 import { ResourceType } from "../services/portfolio/types";
-import { SkillProperties } from "../services/skills/types";
 import {
   AcceptedTermsType,
   DaysOfTheWeekType,
   DocumentsType,
   LocationType,
-  SkillType,
+  SkillProperties,
   UserTypes,
   WorkingDayType,
 } from "../services/workers/types";
@@ -147,13 +146,26 @@ export const validateUserRole = (role: string): boolean => {
 export const validateSkillProperties = (properties: SkillProperties[]): boolean => {
   if (typeof properties !== "object") return false;
   if (Object.keys(properties).length < 1) return false;
-  // check if name and rate are present
+  const errors = [];
   properties.forEach((property) => {
-    if (!property.name || !property.rate) return false;
-    if (typeof property.name !== "string") return false;
-    if (typeof property.rate !== "number") return false;
-    if (!validateWorkRate(property.rate)) return false;
+    if (!property?.name || !property?.rate || !property?.skillId) {
+      errors.push('name, skillId and rate are required');
+    };
+    if (typeof property?.skillId !== "string") {
+      errors.push('skillId must be a string');
+    }
+    if (typeof property?.name !== "string") {
+      errors.push('name must be a string');
+    };
+    if (typeof property?.rate !== "number") {
+      errors.push('rate must be a number');
+    };
+    if (!validateWorkRate(property?.rate)) {
+      errors.push('invalid rate');
+    };
   });
-
+  if (errors.length > 0) {
+    return false;
+  }
   return true;
 }

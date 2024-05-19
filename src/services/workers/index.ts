@@ -1,6 +1,6 @@
 import { formatDbError } from "../../helpers/constants";
 import { getXataClient } from "../../xata";
-import { DaysOfTheWeekType, UserTypes, WorkerType, WorkingDayType } from "./types";
+import { DaysOfTheWeekType, SkillProperties, UserTypes, WorkerType, WorkingDayType } from "./types";
 
 const xata = getXataClient();
 
@@ -16,7 +16,8 @@ export const createWorker = async (worker: WorkerType): Promise<{error?:string; 
             documents,
             email,
             type,
-            skills
+            skills,
+            properties
         } = worker;
         const dbWorker = await xata.db.workers.create({
             firstName: firstName?.trim(),
@@ -29,6 +30,7 @@ export const createWorker = async (worker: WorkerType): Promise<{error?:string; 
             documents,
             email: email.trim(),
             skills,
+            properties
         })
         await xata.db.everyone.create({
             email: email.trim(),
@@ -101,7 +103,19 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
             })
             obj.workingHours = workingHours
         }
-        if(!obj?.firstName && !obj?.lastName && !obj?.companyName && !obj?.avatar && !obj?.pushToken) {
+        if(obj?.properties && obj?.properties?.length > 0){
+            const properties = _dbWorker?.properties?.map((prop: SkillProperties) => {
+                const found = obj?.properties?.find(o => o.skillId === prop?.skillId)
+                if(found) {
+                    return {
+                        ...found
+                    }
+                }
+                return prop
+            })
+            obj.properties = properties
+        }
+        if(!obj?.firstName && !obj?.lastName && !obj?.companyName && !obj?.avatar && !obj?.properties && !obj?.pushToken) {
             const _w = await xata.db.workers.update(id, obj);
             return { data: _w as WorkerType };
         }

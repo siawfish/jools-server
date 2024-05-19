@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers.js';
 import { createSkill, deleteSkill, getSkillById, getSkills, updateSkill } from '../../../services/skills/index.js';
 import { SkillType } from '../../../services/skills/types.js';
-import { validateSkillProperties } from '../../../helpers/constants.js';
 import { UserTypes } from '../../../services/workers/types.js';
 
 export const getSkillsController = async (req: Request, res: Response, next: NextFunction) => {
@@ -29,7 +28,7 @@ export const createSkillController = async (req: Request, res: Response, next: N
         if (!id) {
             throw new Error("Authentication failed")
         }
-        const { name, description, icon, properties } = req.body as SkillType;
+        const { name, description, icon } = req.body as SkillType;
         if(!name || !description || !icon) {
             throw new Error("Name, description, icon and properties are required")
         }
@@ -42,12 +41,6 @@ export const createSkillController = async (req: Request, res: Response, next: N
         }
         if(!icon?.trim()){
             throw new Error("Icon is required")
-        }
-        if(properties) {
-            if(!validateSkillProperties(properties)){
-                throw new Error("Properties are required")
-            }
-            skill.properties = properties;
         }
         skill.name = name.trim();
         skill.description = description.trim();
@@ -76,9 +69,9 @@ export const updateSkillController = async (req: Request, res: Response, next: N
         if(user.role !== UserTypes.SUPER_ADMIN) {
             throw new Error("You are not authorized to update this skill")
         }
-        const { name, description, icon, properties } = req.body as SkillType;
-        if(!name && !description && !icon && !properties) {
-            throw new Error("Only name, description, icon and properties can be updated")
+        const { name, description, icon } = req.body as SkillType;
+        if(!name && !description && !icon) {
+            throw new Error("Only name, description and icon can be updated")
         }
         const skill = {} as SkillType;
         if(name){
@@ -98,12 +91,6 @@ export const updateSkillController = async (req: Request, res: Response, next: N
                 throw new Error("Icon is required")
             }
             skill.icon = icon.trim()
-        }
-        if(properties) {
-            if(!validateSkillProperties(properties)) {
-                throw new Error("Properties are required")
-            }
-            skill.properties = properties
         }
         const { error, data } = await updateSkill(id, skill);
         if(error) {

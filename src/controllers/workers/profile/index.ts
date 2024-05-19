@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { deleteWorker, getWorkerById, updateWorker } from '../../../services/workers/index.js';
 import { errorResponse } from '../../../helpers/errorHandlers.js';
 import { WorkerType } from '../../../services/workers/types.js';
-import { validateLocation, validateSkills, validateWorkRate, validateWorkingHours } from '../../../helpers/constants.js';
+import { validateLocation, validateSkillProperties, validateSkills, validateWorkRate, validateWorkingHours } from '../../../helpers/constants.js';
 import { SkillType } from '../../../services/skills/types.js';
 import { getSkillById } from '../../../services/skills/index.js';
 
@@ -19,7 +19,6 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
         if(!data) {
             throw new Error("An error occurred")
         }
-
         const skills = [] as SkillType[];
         const SkillsPromises = (data?.skills).map(async (id) => {
             return getSkillById(id);
@@ -38,19 +37,19 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
             }
         })
     } catch (error:any) {
-        errorResponse(error?.message, res, 400)
+        errorResponse(error?.message, res)
     }
 }
 
 export const updateWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id }  = res.locals?.user;
-        const { firstName, lastName, companyName, location, skills, workingHours, avatar } : Partial<WorkerType> = req.body;
+        const { firstName, lastName, companyName, location, skills, workingHours, avatar, properties } : Partial<WorkerType> = req.body;
         if(!id) {
             throw new Error("Authentication failed")
         }
-        if(!firstName && !lastName && !companyName && !location && !skills && !workingHours && !avatar) {
-            throw new Error("Only firstName, lastName, companyName, location, avatar, workingHours and skills are allowed")
+        if(!firstName && !lastName && !companyName && !location && !skills && !workingHours && !properties && !avatar) {
+            throw new Error("Only firstName, lastName, companyName, location, avatar, workingHours, properties and skills are allowed")
         }
         const worker: Partial<WorkerType> = {};
         if(firstName){
@@ -99,6 +98,16 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
             if(!avatar.trim()) {
                 throw new Error("Avatar is required")
             }
+            worker.avatar = avatar.trim()
+        }
+        if(properties) {
+            if(!properties.length) {
+                throw new Error("Properties must be an array")
+            }
+            if(!validateSkillProperties(properties)) {
+                throw new Error("Invalid properties")
+            }
+            worker.properties = properties
         }
         const { error, data } = await updateWorker(id, worker);
         if(error) {

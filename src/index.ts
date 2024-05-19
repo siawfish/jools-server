@@ -29,12 +29,14 @@ app.use('/api/workers/auth', workerRouter.workersAuthRoutes);
 app.use('/api/workers', workerRouter.workersProfileRoutes);
 app.use('/api/workers', workerRouter.workersPortfolioRoutes);
 app.use('/api/workers', workerRouter.workersFilesRoutes);
+app.use('/api/workers', workerRouter.workersSkillsRoutes);
 
 // users routes
 app.use('/api/users/auth', userRouter.usersAuthRoutes);
 app.use('/api/users', userRouter.usersFilesRoutes);
 app.use('/api/users', userRouter.usersProfileRoutes);
 app.use('/api/users', userRouter.usersBookingRoutes);
+app.use('/api/users', userRouter.usersSkillsRoutes);
 
 // admin routes
 app.use('/api/admin/auth', adminRouter.adminAuthRoutes);

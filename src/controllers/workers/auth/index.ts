@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
+import { validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkillProperties, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp/index.js';
 import sendSms, { constructVerificationSms } from '../../../services/sms/index.js';
 import { AccountTypes, UserTypes, VerifyOTPpayloadType, WorkerType } from '../../../services/workers/types.js';
@@ -22,6 +22,7 @@ export const registerController = async (req: Request, res: Response, next: Next
             documents,
             email,
             skills,
+            properties
          }: WorkerType = req.body;
         if(type !== AccountTypes.INDIVIDUAL && type !== AccountTypes.COMPANY) {
             throw new Error("Invalid Account Type")
@@ -59,6 +60,14 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!validateSkills(skills as string[])) {
             throw new Error("Invalid Skills")
         }
+        if(!validateSkillProperties(properties)){
+            throw new Error("Properties are invalid")
+        }
+        const propertySkills = properties.map((property) => property.skillId);
+        const invalidSkills = propertySkills.filter((skill) => !skills.includes(skill));
+        if(invalidSkills.length > 0) {
+            throw new Error(`Invalid Properties: ${invalidSkills.join(", ")}`)
+        }
         const skillsArr = [] as SkillType[];
         const errorsArr = [] as string[];
         const SkillsPromises = (skills as string[]).map(async (id) => {
@@ -87,6 +96,7 @@ export const registerController = async (req: Request, res: Response, next: Next
             documents,
             email,
             skills,
+            properties
         });
         if(error) {
             throw new Error(error)
@@ -102,7 +112,7 @@ export const registerController = async (req: Request, res: Response, next: Next
             }
         })
     } catch (error:any) {
-        errorResponse(error?.message, res, 400)
+        errorResponse(error?.message, res)
     }
 }
 

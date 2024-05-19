@@ -33,6 +33,7 @@ const tables = [
       { name: "avatar", type: "string" },
       { name: "skills", type: "multiple" },
       { name: "companyName", type: "string", unique: true },
+      { name: "properties", type: "json", notNull: true, defaultValue: "[]" },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
@@ -65,13 +66,6 @@ const tables = [
       { name: "icon", type: "string" },
       { name: "description", type: "text" },
       { name: "createdBy", type: "link", link: { table: "admin" } },
-      {
-        name: "properties",
-        type: "json",
-        notNull: true,
-        defaultValue:
-          '[{\n  "name": "Hourly Rate",\n  "description": "Your rate for an hour of work",\n  "rate": 2.5\n}]',
-      },
     ],
   },
   {

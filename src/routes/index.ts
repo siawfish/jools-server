@@ -9,19 +9,23 @@ import usersBookingRoutes from './users/bookings.js'
 import adminAuthRoutes from './admin/auth.js'
 import adminProfileRoutes from './admin/profile.js'
 import adminSkillsRoutes from './admin/skills.js'
+import workerSkillsRoutes from './workers/skills.js'
+import usersSkillsRoutes from './users/skills.js'
 
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
     workersProfileRoutes: workerProfileRoutes,
     workersPortfolioRoutes: portfolioRoutes,
-    workersFilesRoutes: workerFilesRoutes
+    workersFilesRoutes: workerFilesRoutes,
+    workersSkillsRoutes: workerSkillsRoutes
 }
 
 const userRouter = {
     usersAuthRoutes: userAuthRoutes,
     usersFilesRoutes: usersFilesRoutes,
     usersProfileRoutes: usersProfileRoutes,
-    usersBookingRoutes: usersBookingRoutes
+    usersBookingRoutes: usersBookingRoutes,
+    usersSkillsRoutes: usersSkillsRoutes
 }
 
 const adminRouter = {
