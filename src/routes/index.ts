@@ -8,6 +8,7 @@ import usersProfileRoutes from './users/profile.js'
 import usersBookingRoutes from './users/bookings.js'
 import adminAuthRoutes from './admin/auth.js'
 import adminProfileRoutes from './admin/profile.js'
+import adminSkillsRoutes from './admin/skills.js'
 
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
@@ -25,7 +26,8 @@ const userRouter = {
 
 const adminRouter = {
     adminAuthRoutes: adminAuthRoutes,
-    adminProfileRoutes: adminProfileRoutes
+    adminProfileRoutes: adminProfileRoutes,
+    adminSkillsRoutes: adminSkillsRoutes
 }
 
 export {

@@ -45,15 +45,9 @@ export const validateWorkRate = (workRate: number): boolean => {
   return workRate >= 0;
 };
 
-export const validateSkills = (skills: SkillType[]): boolean => {
+export const validateSkills = (skills: string[]): boolean => {
   if (!Array.isArray(skills)) return false;
   if (skills.length < 1) return false;
-  for (const skill of skills) {
-    if (typeof skill !== "object") return false;
-    if (typeof skill.name !== "string") return false;
-    if (typeof skill.icon !== "string") return false;
-    if (!skill.id) return false;
-  }
   return true;
 };
 
@@ -101,6 +95,7 @@ export const validateResources = (resources: ResourceType[]): boolean => {
 };
 
 export const formatDbError = (error: string, suffix?: string): string => {
+  console.log(error);
   const [_, column, message] = error.split(":");
   const columnName = column.split("[")[1].split("]")[0]; // Extracts 'phoneNumber' from 'column [phoneNumber]'
   if (message.trim() === "is not unique") {
@@ -143,4 +138,10 @@ export const validateUserRole = (role: string): boolean => {
     role === UserTypes.SUPER_ADMIN ||
     role === UserTypes.USER
   );
+}
+
+export const validateSkillProperties = (skill: SkillType): boolean => {
+  if (typeof skill !== "object") return false;
+  if (Object.keys(skill).length < 1) return false;
+  return true;
 }

@@ -3,6 +3,8 @@ import { deleteWorker, getWorkerById, updateWorker } from '../../../services/wor
 import { errorResponse } from '../../../helpers/errorHandlers.js';
 import { WorkerType } from '../../../services/workers/types.js';
 import { validateLocation, validateSkills, validateWorkRate, validateWorkingHours } from '../../../helpers/constants.js';
+import { SkillType } from '../../../services/skills/types.js';
+import { getSkillById } from '../../../services/skills/index.js';
 
 export const getWorkerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,9 +19,23 @@ export const getWorkerController = async (req: Request, res: Response, next: Nex
         if(!data) {
             throw new Error("An error occurred")
         }
+
+        const skills = [] as SkillType[];
+        const SkillsPromises = (data?.skills).map(async (id) => {
+            return getSkillById(id);
+        });
+        const skillsData = await Promise.all(SkillsPromises);
+        skillsData.forEach((skill) => {
+            if(skill?.data) {
+                skills.push(skill.data)
+            }
+        });
         return res.status(200).json({
             message: "Worker fetched successfully",
-            data
+            data: {
+                ...data,
+                skills
+            }
         })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)
@@ -97,9 +113,22 @@ export const updateWorkerController = async (req: Request, res: Response, next: 
         if(!data) {
             throw new Error("An error occurred")
         }
+        const skillsArr = [] as SkillType[];
+        const SkillsPromises = (data?.skills).map(async (id) => {
+            return getSkillById(id);
+        });
+        const skillsData = await Promise.all(SkillsPromises);
+        skillsData.forEach((skill) => {
+            if(skill?.data) {
+                skillsArr.push(skill.data)
+            }
+        });
         return res.status(200).json({
             message: "Worker updated successfully",
-            data
+            data: {
+                ...data,
+                skills: skillsArr
+            }
         })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)
@@ -145,9 +174,22 @@ export const updatePushTokenController = async (req: Request, res: Response, nex
         if(!data) {
             throw new Error("An error occurred")
         }
+        const skills = [] as SkillType[];
+        const SkillsPromises = (data?.skills).map(async (id) => {
+            return getSkillById(id);
+        });
+        const skillsData = await Promise.all(SkillsPromises);
+        skillsData.forEach((skill) => {
+            if(skill?.data) {
+                skills.push(skill.data)
+            }
+        });
         return res.status(200).json({
             message: "Push token updated successfully",
-            data
+            data: {
+                ...data,
+                skills
+            }
         })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)

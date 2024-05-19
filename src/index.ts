@@ -38,6 +38,8 @@ app.use('/api/users', userRouter.usersBookingRoutes);
 
 // admin routes
 app.use('/api/admin/auth', adminRouter.adminAuthRoutes);
+app.use('/api/admin', adminRouter.adminProfileRoutes);
+app.use('/api/admin', adminRouter.adminSkillsRoutes);
 
 
 app.listen(config.port, ()=>console.log(`App is listening on url ${config.host}:${config.port}`));

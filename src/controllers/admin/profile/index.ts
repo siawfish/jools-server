@@ -8,16 +8,26 @@ import { UserTypes } from '../../../services/workers/types.js';
 export const getAdminController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user  = res.locals?.user as AdminType;
+        const { id } = req.params;
+        if(!id) {
+            throw new Error("Admin id is required")
+        }
         if(!user?.id) {
             throw new Error("Authentication failed")
         }
-        const admin = await getAdminById(user.id);
+        const { error, data } = await getAdminById(id);
+        if(error) {
+            throw new Error(error)
+        }
+        if(!data) {
+            throw new Error("An error occurred")
+        }
         return res.status(200).json({
             message: "Admin fetched successfully",
-            data: admin
+            data
         })
     } catch (error:any) {
-        errorResponse(error?.message, res, 400)
+        errorResponse(error?.message, res)
     }
 }
 

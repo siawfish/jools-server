@@ -6,7 +6,8 @@ import sendSms, { constructVerificationSms } from '../../../services/sms/index.j
 import { AccountTypes, UserTypes, VerifyOTPpayloadType, WorkerType } from '../../../services/workers/types.js';
 import { createWorker, getWorkerById, getWorkerByPhoneNumber } from '../../../services/workers/index.js';
 import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
-import { JwtPayload } from '../../../services/jwt/types';
+import { SkillType } from '../../../services/skills/types';
+import { getSkillById } from '../../../services/skills';
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -62,8 +63,25 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!validateWorkRate(workRate)) {
             throw new Error("Invalid Work Rate")
         }
-        if(!validateSkills(skills)) {
+        if(!validateSkills(skills as string[])) {
             throw new Error("Skills is required")
+        }
+        const skillsArr = [] as SkillType[];
+        const errorsArr = [] as string[];
+        const SkillsPromises = (skills as string[]).map(async (id) => {
+            return getSkillById(id);
+        });
+        const skillsData = await Promise.all(SkillsPromises);
+        skillsData.forEach((skill) => {
+            if(skill?.error) {
+                errorsArr.push(skill.error)
+            }
+            if(skill?.data) {
+                skillsArr.push(skill.data)
+            }
+        });
+        if(errorsArr.length > 0) {
+            throw new Error(errorsArr.join(", "))
         }
         const { error, data } = await createWorker({
             firstName,
@@ -86,7 +104,10 @@ export const registerController = async (req: Request, res: Response, next: Next
         }
         return res.status(201).json({
             message: "User registered successfully",
-            data
+            data: {
+                ...data,
+                skills: skillsArr
+            }
         })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)
@@ -203,10 +224,23 @@ export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response
         if(!data) {
             throw new Error("An error occurred")
         }
-        res.locals.user = data;
+        const skills = [] as SkillType[];
+        const SkillsPromises = (data?.skills).map(async (id) => {
+            return getSkillById(id);
+        });
+        const skillsData = await Promise.all(SkillsPromises);
+        skillsData.forEach((skill) => {
+            if(skill?.data) {
+                skills.push(skill.data)
+            }
+        });
+        res.locals.user = {
+            ...data,
+            skills
+        };
         next();
     } catch (error:any) {
-        errorResponse("Bearer token is invalid", res, 401)
+        errorResponse("Bearer token is invalid", res)
     }
 }
 

@@ -10,7 +10,7 @@ export interface WorkerType {
   type: AccountTypes;
   documents?: DocumentsType;
   email: string;
-  skills: SkillType[];
+  skills: string[];
   score?: number;
   rating?: number;
   isVerified?: boolean;

@@ -19,7 +19,7 @@ export const getAdminByPhoneNumber = async (phoneNumber: string): Promise<{error
     try {
         const admin = await xata.db.admin.filter({ phoneNumber }).getFirst();
         if(!admin) {
-            throw new Error(`Admin with email ${phoneNumber} does not exist`);
+            throw new Error(`Admin with phone "${phoneNumber}" does not exist`);
         }
         return { data: admin as AdminType };
     } catch (error:any) {

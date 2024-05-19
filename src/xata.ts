@@ -24,7 +24,6 @@ const tables = [
       { name: "rating", type: "float" },
       { name: "isVerified", type: "bool" },
       { name: "pushToken", type: "text" },
-      { name: "skills", type: "json" },
       { name: "status", type: "int", notNull: true, defaultValue: "1" },
       {
         name: "workingHours",
@@ -34,6 +33,7 @@ const tables = [
           '[\n    {\n        "day": "MONDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "TUESDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "WEDNESDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "THURSDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "FRIDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "SATURDAY",\n        "start": "08:00",\n        "end": "17:00"\n    },\n    {\n        "day": "SUNDAY",\n        "start": "08:00",\n        "end": "17:00"\n    }\n]',
       },
       { name: "avatar", type: "string" },
+      { name: "skills", type: "multiple" },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
@@ -65,6 +65,8 @@ const tables = [
       { name: "name", type: "string", unique: true },
       { name: "icon", type: "string" },
       { name: "properties", type: "json", notNull: true, defaultValue: "{}" },
+      { name: "description", type: "text" },
+      { name: "createdBy", type: "link", link: { table: "admin" } },
     ],
   },
   {
@@ -184,6 +186,7 @@ const tables = [
       { name: "phoneNumber", type: "string", unique: true },
       { name: "status", type: "int", notNull: true, defaultValue: "1" },
     ],
+    revLinks: [{ column: "createdBy", table: "skills" }],
   },
 ] as const;
 

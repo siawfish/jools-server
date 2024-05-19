@@ -71,6 +71,48 @@ export const registerAdminController = async (req: Request, res: Response, next:
     }
 }
 
+export const signinAdminController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { phoneNumber }  = req.body;
+        if(!validatePhoneNumber(phoneNumber?.trim())) {
+            throw new Error("Phone Number is required")
+        }
+        const { error, data } = await getAdminByPhoneNumber(phoneNumber?.trim());
+        if(error) {
+            throw new Error(error)
+        }
+        if(!data) {
+            throw new Error("An error occurred")
+        }
+        const { error:otpError, data:otpData } = await createOtp({ phoneNumber });
+        if(otpError) {
+            throw new Error(otpError)
+        }
+        if(!otpData) {
+            throw new Error("An error occurred")
+        }
+        const content = constructVerificationSms(otpData.otp);
+        const options = {
+            to: phoneNumber,
+            content,
+        }
+        const { error: smsError } = await sendSms(options);
+        if(smsError){
+            removeOtp({ referenceId: otpData.referenceId });
+            throw new Error("An error occurred sending sms, please resend code")
+        }
+        return res.status(200).json({
+            message: "An OTP has been sent to your phone number for verification",
+            otp: {
+                referenceId: otpData.referenceId,
+                phoneNumber
+            }
+        })
+    } catch (error:any) {
+        errorResponse(error?.message, res)
+    }
+}
+
 export const verifyAdminOTPController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { otp, referenceId, phoneNumber } : VerifyOTPpayloadType = req.body;
