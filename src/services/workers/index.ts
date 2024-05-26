@@ -1,6 +1,7 @@
+import typesense from "../../../config/typesense";
 import { formatDbError } from "../../helpers/constants";
 import { getXataClient } from "../../xata";
-import { DaysOfTheWeekType, SkillProperties, UserTypes, WorkerType, WorkingDayType } from "./types";
+import { DaysOfTheWeekType, SkillProperties, Status, UserTypes, WorkerType, WorkingDayType } from "./types";
 
 const xata = getXataClient();
 
@@ -32,16 +33,7 @@ export const createWorker = async (worker: WorkerType): Promise<{error?:string; 
             skills,
             properties
         })
-        await xata.db.everyone.create({
-            email: email.trim(),
-            phoneNumber: phoneNumber.trim(),
-            userType: UserTypes.WORKER,
-            type,
-            userId: dbWorker.id,
-            firstName: firstName?.trim(),
-            lastName: lastName?.trim(),
-            companyName: companyName?.trim(),
-        })
+        await saveToUsersTable(dbWorker as WorkerType)
         return { data: dbWorker as WorkerType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
@@ -50,7 +42,7 @@ export const createWorker = async (worker: WorkerType): Promise<{error?:string; 
 
 export const getWorkerByPhoneNumber = async (phoneNumber: string): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const worker = await xata.db.workers.filter({ phoneNumber, status: 1 }).getFirst();
+        const worker = await xata.db.workers.filter({ phoneNumber }).getFirst();
         if(!worker) {
             throw new Error(`User with phone number ${phoneNumber} does not exist`)
         }
@@ -62,7 +54,7 @@ export const getWorkerByPhoneNumber = async (phoneNumber: string): Promise<{erro
 
 export const getWorkerById = async (id: string): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const worker = await xata.db.workers.filter({ id, status: 1 }).getFirst();
+        const worker = await xata.db.workers.filter({ id }).getFirst();
         if(!worker) {
             throw new Error(`User with id "${id}" does not exist`)
         }
@@ -74,7 +66,7 @@ export const getWorkerById = async (id: string): Promise<{error?:string; data?:W
 
 export const updateWorker = async (id:string, worker: Partial<WorkerType>): Promise<{error?:string; data?:WorkerType}> => {
     try {
-        const [_dbWorker, _dbEveryone] = await Promise.all([xata.db.workers.filter({ id, status: 1 }).getFirst(), xata.db.everyone.filter({ userId: id }).getFirst()]);
+        const [_dbWorker, _dbEveryone] = await Promise.all([xata.db.workers.filter({ id }).getFirst(), xata.db.everyone.filter({ userId: id }).getFirst()]);
         if(!_dbWorker) {
             throw new Error(`User with id "${id}" does not exist`)
         }
@@ -117,6 +109,11 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
         }
         if(!obj?.firstName && !obj?.lastName && !obj?.companyName && !obj?.avatar && !obj?.properties && !obj?.pushToken) {
             const _w = await xata.db.workers.update(id, obj);
+            if(_w?.status === Status.ACTIVE) {
+                updateWorkerInTypesense(id, _w as WorkerType);
+            } else {
+                deleteWorkerFromTypesense(id);
+            }
             return { data: _w as WorkerType };
         }
         const everyOneObj:Partial<WorkerType> = {}
@@ -136,9 +133,35 @@ export const updateWorker = async (id:string, worker: Partial<WorkerType>): Prom
             everyOneObj.avatar = obj?.avatar
         }
         const [_w, _e] = await Promise.all([xata.db.workers.update(_dbWorker?.id, obj), xata.db.everyone.update(_dbEveryone?.id, everyOneObj)])
+        if(_w?.status === Status.ACTIVE) {
+            updateWorkerInTypesense(id, _w as WorkerType);
+        } else {
+            deleteWorkerFromTypesense(id);
+        }
         return { data: _w as WorkerType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
+    }
+}
+
+export const updateWorkerStatus = async (id: string, status: Status): Promise<{error?:string; data?:WorkerType}> => {
+    try {
+        const [_w, _e] = await Promise.all([xata.db.workers.filter({ id }).getFirst(), xata.db.everyone.filter({ userId: id }).getFirst()]);
+        if(!_w || !_e) {
+            throw new Error(`User with id "${id}" does not exist`)
+        }
+        if(_w.id !== id) {
+            throw new Error("You are not authorized to perform this action")
+        }
+        const [worker] = await Promise.all([xata.db.workers.update(_w.id, { status }), xata.db.everyone.update(_e.id, { status })])
+        if(status === Status.ACTIVE) {
+            updateWorkerInTypesense(id, worker as WorkerType);
+        } else {
+            deleteWorkerFromTypesense(id);
+        }
+        return { data: worker as WorkerType }
+    } catch (error:any) {
+        return { error: error?.message }
     }
 }
 
@@ -151,9 +174,92 @@ export const deleteWorker = async (id: string): Promise<{error?:string; data?:Wo
         if(_w.id !== id) {
             throw new Error("You are not authorized to perform this action")
         }
-        const [worker] = await Promise.all([xata.db.workers.update(_w.id, { status: 0 }), xata.db.everyone.update(_e.id, { status: 0 })])
+        const [worker] = await Promise.all([xata.db.workers.update(_w.id, { status: 2 }), xata.db.everyone.update(_e.id, { status: 2 })])
+        deleteWorkerFromTypesense(id);
         return { data: worker as WorkerType }
     } catch (error:any) {
         return { error: error?.message }
+    }
+}
+
+export const updateWorkerInTypesense = async (id: string, worker: Partial<WorkerType>): Promise<void> => {
+    try {
+        const {
+            avatar,
+            firstName,
+            lastName,
+            companyName,
+            phoneNumber,
+            location,
+            acceptedTerms,
+            type,
+            documents,
+            email,
+            skills,
+            score,
+            rating,
+            pushToken,
+            workingHours,
+            id,
+            properties,
+            status,
+        } = worker;
+        const data = {
+            id,
+            firstName,
+            lastName,
+            companyName: companyName??"",
+            phoneNumber,
+            location: [location?.lat, location?.lng],
+            email,
+            type,
+            skills,
+            properties,
+            acceptedTerms,
+            documents,
+            workingHours,
+            avatar: avatar??"",
+            score,
+            rating,
+            pushToken: pushToken??"",
+            status,
+        }
+        await typesense.collections('workers').documents().upsert(data)
+    } catch (error:any) {
+        console.log("typesense update error----->", error?.message)
+    }
+}
+
+const deleteWorkerFromTypesense = async (id: string): Promise<void> => {
+    try {
+        await typesense.collections('workers').documents(id).delete()
+    } catch (error:any) {
+        console.log("typesense delete error----->", error?.message)
+    }
+}
+
+export const saveToUsersTable = async (worker: WorkerType): Promise<void> => {
+    try {
+        const {
+            firstName,
+            lastName,
+            companyName,
+            phoneNumber,
+            email,
+            type,
+            id
+        } = worker;
+        await xata.db.everyone.create({
+            email: email.trim(),
+            phoneNumber: phoneNumber.trim(),
+            userType: UserTypes.WORKER,
+            type,
+            userId: id,
+            firstName: firstName?.trim(),
+            lastName: lastName?.trim(),
+            companyName: companyName?.trim(),
+        })
+    } catch (error:any) {
+        console.log("save to users table error----->", error?.message)
     }
 }

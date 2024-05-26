@@ -5,15 +5,16 @@ export default async function sendSms(
   options: SmsType
 ): Promise<{ error?: string, data?: string }> {
   try {
+    const { hubtel } = config;
     const query = new URLSearchParams({
       to: options.to,
       content: options.content,
-      from: config.hubtel_sms_name,
-      clientid: config.hubtel_client_id,
-      clientsecret: config.hubtel_client_secret,
+      from: hubtel.sms_name,
+      clientid: hubtel.client_id,
+      clientsecret: hubtel.client_secret,
     } as Record<string, string>).toString();
 
-    const resp = await fetch(`${config.hubtel_sms_url}?${query}`, {
+    const resp = await fetch(`${hubtel.sms_url}?${query}`, {
       method: "GET",
     });
 

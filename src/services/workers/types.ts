@@ -12,11 +12,17 @@ export interface WorkerType {
   skills: string[];
   score?: number;
   rating?: number;
-  isVerified?: boolean;
   pushToken?: string;
   workingHours?: WorkingDayType[];
   id?: string;
   properties: SkillProperties[];
+  status?: Status;
+}
+
+export enum Status {
+  DELETED = 2,
+  ACTIVE = 1,
+  INACTIVE = 0,
 }
 
 

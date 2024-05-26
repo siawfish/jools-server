@@ -6,8 +6,12 @@ import path from 'path';
 import config from '../config/index.js';
 import { workerRouter, userRouter, adminRouter } from './routes/index.js';
 import cloudinaryConfig from '../config/cloudinary.js';
+import typesense, { typesenseWorkerSchema } from '../config/typesense.js';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection.js';
 
 const app = express();
+const schema = typesenseWorkerSchema as CollectionCreateSchema;
 
 app.use(express.json());
 app.use(cors());
@@ -24,6 +28,23 @@ app.use(
 
 cloudinaryConfig();
 
+typesense.collections().retrieve().then((collections: CollectionSchema[]) => {
+    const workerCollectionExists = collections.some(collection => collection['name'] === 'workers');
+
+    if (!workerCollectionExists) {
+        typesense.collections().create(schema).then(() => {
+            console.log('Worker schema created');
+        }).catch((error: any) => {
+            console.log(error?.message);
+        });
+        return;
+    }
+
+    console.log('Worker collection exists');
+}).catch((error: any) => {
+    console.log(error?.message);
+});
+
 // workers routes
 app.use('/api/workers/auth', workerRouter.workersAuthRoutes);
 app.use('/api/workers', workerRouter.workersProfileRoutes);
@@ -37,11 +58,13 @@ app.use('/api/users', userRouter.usersFilesRoutes);
 app.use('/api/users', userRouter.usersProfileRoutes);
 app.use('/api/users', userRouter.usersBookingRoutes);
 app.use('/api/users', userRouter.usersSkillsRoutes);
+app.use('/api/users', userRouter.searchRoutes);
 
 // admin routes
 app.use('/api/admin/auth', adminRouter.adminAuthRoutes);
 app.use('/api/admin', adminRouter.adminProfileRoutes);
 app.use('/api/admin', adminRouter.adminSkillsRoutes);
+app.use('/api/admin', adminRouter.adminWorkersRoutes);
 
 
 app.listen(config.port, ()=>console.log(`App is listening on url ${config.host}:${config.port}`));

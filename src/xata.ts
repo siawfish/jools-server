@@ -18,11 +18,7 @@ const tables = [
       { name: "type", type: "string" },
       { name: "documents", type: "json" },
       { name: "email", type: "email", unique: true },
-      { name: "score", type: "float" },
-      { name: "rating", type: "float" },
-      { name: "isVerified", type: "bool" },
       { name: "pushToken", type: "text" },
-      { name: "status", type: "int", notNull: true, defaultValue: "1" },
       {
         name: "workingHours",
         type: "json",
@@ -34,6 +30,9 @@ const tables = [
       { name: "skills", type: "multiple" },
       { name: "companyName", type: "string", unique: true },
       { name: "properties", type: "json", notNull: true, defaultValue: "[]" },
+      { name: "status", type: "int", notNull: true, defaultValue: "0" },
+      { name: "score", type: "float", notNull: true, defaultValue: "0" },
+      { name: "rating", type: "int", notNull: true, defaultValue: "0" },
     ],
     revLinks: [
       { column: "createdBy", table: "portfolios" },
@@ -140,8 +139,8 @@ const tables = [
       { name: "email", type: "email" },
       { name: "pushToken", type: "text" },
       { name: "type", type: "string" },
-      { name: "status", type: "int", notNull: true, defaultValue: "1" },
       { name: "avatar", type: "string" },
+      { name: "status", type: "int", notNull: true, defaultValue: "0" },
     ],
     revLinks: [
       { column: "author", table: "comments" },

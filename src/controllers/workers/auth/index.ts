@@ -3,8 +3,8 @@ import { errorResponse } from '../../../helpers/errorHandlers';
 import { validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkillProperties, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp/index.js';
 import sendSms, { constructVerificationSms } from '../../../services/sms/index.js';
-import { AccountTypes, UserTypes, VerifyOTPpayloadType, WorkerType } from '../../../services/workers/types.js';
-import { createWorker, getWorkerById, getWorkerByPhoneNumber } from '../../../services/workers/index.js';
+import { AccountTypes, Status, UserTypes, VerifyOTPpayloadType, WorkerType } from '../../../services/workers/types.js';
+import { createWorker, getWorkerById, getWorkerByPhoneNumber, updateWorker } from '../../../services/workers/index.js';
 import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
 import { SkillType } from '../../../services/skills/types';
 import { getSkillById } from '../../../services/skills';
@@ -181,6 +181,9 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
             throw new Error("An error occurred verifying OTP")
         }
         if(_w?.data?.id) {
+            if(_w?.data?.status === Status.DELETED) {
+                await updateWorker(_w?.data?.id, { status: Status.ACTIVE });
+            }
             const token = createJwtToken({
                 id: _w?.data?.id,
                 type: UserTypes.WORKER
