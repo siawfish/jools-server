@@ -1,8 +1,9 @@
 import { NextFunction, Response, Request } from "express";
 import { validateResources, validateSkills, validateDayStartEnd } from "../../../helpers/constants";
 import { errorResponse } from "../../../helpers/errorHandlers";
-import { BookingStatuses, BookingType } from "../../../services/bookings/types";
+import { BookingStatuses } from "../../../types";
 import { createBooking } from "../../../services/bookings";
+import { BookingType } from "../../../services/bookings/types";
 
 export const createBookingController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -21,9 +22,6 @@ export const createBookingController = async (req: Request, res: Response, next:
         }
         if(estimatedFee < 0){
             throw new Error("Invalid estimated fee")
-        }
-        if(!validateSkills(skills)){
-            throw new Error("Invalid skillset")
         }
         if(!workerId){
             throw new Error("Worker ID is required")

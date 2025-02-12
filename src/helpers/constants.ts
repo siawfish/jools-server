@@ -4,11 +4,12 @@ import {
   AcceptedTermsType,
   DaysOfTheWeekType,
   DocumentsType,
+  GhanaCard,
   LocationType,
-  SkillProperties,
-  UserTypes,
-  WorkingDayType,
+  Skill,
+  WorkingHours
 } from "../services/workers/types";
+import { UserTypes } from "../types";
 
 // export a function that validates ghanaian phone numbers
 export const validatePhoneNumber = (phoneNumber: string): boolean => {
@@ -45,41 +46,20 @@ export const validateWorkRate = (workRate: number): boolean => {
   return workRate >= 0;
 };
 
-export const validateSkills = (skills: string[]): boolean => {
-  if (!Array.isArray(skills)) return false;
-  if (skills.length < 1) return false;
-  for (const skill of skills) {
-    if (typeof skill !== "string") return false;
-  }
-  return true;
-};
-
 export const validateWorkingHours = (
-  workingHours: WorkingDayType[]
+  workingHours: WorkingHours[]
 ): boolean => {
   if (!Array.isArray(workingHours)) return false;
-  if (workingHours.length < 1) return false;
+  if (workingHours.length < 1 || workingHours.length > 7) return false;
   for (const workingHour of workingHours) {
     if (typeof workingHour !== "object") return false;
-    if (typeof workingHour.day !== "string") return false;
-    if (typeof workingHour.start !== "string") return false;
-    if (typeof workingHour.end !== "string") return false;
-    if (
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.MONDAY &&
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.TUESDAY &&
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.WEDNESDAY &&
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.THURSDAY &&
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.FRIDAY &&
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SATURDAY &&
-      workingHour?.day?.toUpperCase() !== DaysOfTheWeekType.SUNDAY
-    )
-      return false;
-    const [startHour, startMinute] = workingHour.start.split(":");
-    const [endHour, endMinute] = workingHour.end.split(":");
-    if (parseInt(startHour) < 0 || parseInt(startHour) > 23) return false;
-    if (parseInt(startMinute) < 0 || parseInt(startMinute) > 59) return false;
-    if (parseInt(endHour) < 0 || parseInt(endHour) > 23) return false;
-    if (parseInt(endMinute) < 0 || parseInt(endMinute) > 59) return false;
+    if (typeof workingHour.from !== "string") return false;
+    if (typeof workingHour.to !== "string") return false;
+    if (typeof workingHour.enabled !== "boolean") return false;
+    if(Object.keys(workingHour).some(key => !DaysOfTheWeekType[key as keyof typeof DaysOfTheWeekType])) return false;
+    if (parseInt(workingHour.from) < 0 || parseInt(workingHour.from) > 23) return false;
+    if (parseInt(workingHour.to) < 0 || parseInt(workingHour.to) > 23) return false;
+    if (parseInt(workingHour.from) > parseInt(workingHour.to)) return false;
   }
   return true;
 };
@@ -143,29 +123,37 @@ export const validateUserRole = (role: string): boolean => {
   );
 }
 
-export const validateSkillProperties = (properties: SkillProperties[]): boolean => {
-  if (typeof properties !== "object") return false;
-  if (Object.keys(properties).length < 1) return false;
+export const validateSkills = (skills: Skill[]): boolean => {
+  if (typeof skills !== "object") return false;
+  if (skills.length < 1) return false;
   const errors = [];
-  properties.forEach((property) => {
-    if (!property?.name || !property?.rate || !property?.skillId) {
-      errors.push('name, skillId and rate are required');
+  skills.forEach((skill) => {
+    if (!skill?.name || !skill?.rate) {
+      errors.push('name and rate are required');
     };
-    if (typeof property?.skillId !== "string") {
-      errors.push('skillId must be a string');
+    if (typeof skill?.id !== "string") {
+      errors.push('id must be a string');
     }
-    if (typeof property?.name !== "string") {
+    if (typeof skill?.name !== "string") {
       errors.push('name must be a string');
     };
-    if (typeof property?.rate !== "number") {
+    if (typeof skill?.rate !== "number") {
       errors.push('rate must be a number');
     };
-    if (!validateWorkRate(property?.rate)) {
+    if (!validateWorkRate(skill?.rate)) {
       errors.push('invalid rate');
     };
   });
   if (errors.length > 0) {
     return false;
   }
+  return true;
+}
+
+export const validateGhanaCard = (ghanaCard: GhanaCard): boolean => {
+  if (typeof ghanaCard !== "object") return false;
+  if (typeof ghanaCard.number !== "string") return false;
+  if (typeof ghanaCard.front !== "string") return false;
+  if (typeof ghanaCard.back !== "string") return false;
   return true;
 }

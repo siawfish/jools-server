@@ -1,5 +1,5 @@
+import { BookingStatuses } from "../../types";
 import { ResourceType } from "../portfolio/types";
-import { SkillType } from "../workers/types";
 
 export interface BookingType {
     id?: string;
@@ -15,15 +15,6 @@ export interface BookingType {
     media: ResourceType[];
     estimatedFee: number;
     skills: string[];
-}
-
-export enum BookingStatuses {
-    PENDING = "PENDING",
-    ACCEPTED = "ACCEPTED",
-    DECLINED = "DECLINED",
-    CANCELLED = "CANCELLED",
-    COMPLETED = "COMPLETED",
-    PAUSED = "PAUSED",
 }
 
 export interface Timelines {

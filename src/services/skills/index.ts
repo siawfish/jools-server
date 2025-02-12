@@ -1,14 +1,10 @@
 import { formatDbError } from "../../helpers/constants";
-import { getXataClient } from "../../xata";
-import { SkillType } from "./types";
-
-const xata = getXataClient();
+import { SkillType } from "../../types";
 
 export const createSkill = async (skill: SkillType): Promise<{ error?: string; data?:SkillType }> => {
     try {
-        const data = await xata.db.skills.create(skill);
         return { 
-            data: data as SkillType
+            data: skill as SkillType
         }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
@@ -17,8 +13,7 @@ export const createSkill = async (skill: SkillType): Promise<{ error?: string; d
 
 export const getSkills = async (): Promise<{ error?: string; data?:SkillType[] }> => {
     try {
-        const data = await xata.db.skills.getAll();
-        return { data: data as SkillType[] }
+        return { data: [] as SkillType[] }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
     }
@@ -26,7 +21,17 @@ export const getSkills = async (): Promise<{ error?: string; data?:SkillType[] }
 
 export const getSkillById = async (id: string): Promise<{ error?: string; data?:SkillType }> => {
     try {
-        const data = await xata.db.skills.filter({ id }).getFirst();
+        const data = {
+            id: "123",
+            name: "Plumbing",
+            rate: 100,
+            yearsOfExperience: 5,
+            description: "Plumbing is the installation and maintenance of systems for collecting, distributing and treating water",
+            icon: "https://example.com/icon.jpg",
+            createdBy: "123",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
         if(!data) {
             throw new Error(`Skill with id "${id}" does not exist`)
         }
@@ -38,9 +43,16 @@ export const getSkillById = async (id: string): Promise<{ error?: string; data?:
 
 export const updateSkill = async (id: string, skill: SkillType): Promise<{ error?: string; data?:SkillType }> => {
     try {
-        const data = await xata.db.skills.update(id, skill);
-        if(!data) {
-            throw new Error(`Skill with id "${id}" does not exist`)
+        const data = {
+            id: "123",
+            name: "Plumbing",
+            rate: 100,
+            yearsOfExperience: 5,
+            description: "Plumbing is the installation and maintenance of systems for collecting, distributing and treating water",
+            icon: "https://example.com/icon.jpg",
+            createdBy: "123",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         }
         return { data: data as SkillType }
     } catch (error:any) {
@@ -50,7 +62,17 @@ export const updateSkill = async (id: string, skill: SkillType): Promise<{ error
 
 export const deleteSkill = async (id: string): Promise<{ error?: string; data?:SkillType }> => {
     try {
-        const data = await xata.db.skills.delete({ id });
+        const data = {
+            id: "123",
+            name: "Plumbing",
+            rate: 100,
+            yearsOfExperience: 5,
+            description: "Plumbing is the installation and maintenance of systems for collecting, distributing and treating water",
+            icon: "https://example.com/icon.jpg",
+            createdBy: "123",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
         return { data: data as SkillType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }

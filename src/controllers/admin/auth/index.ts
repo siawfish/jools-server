@@ -6,7 +6,8 @@ import sendSms, { constructVerificationSms } from '../../../services/sms/index.j
 import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
 import { AdminType } from '../../../services/admin/types';
 import { createUser, getAdminById, getAdminByPhoneNumber } from '../../../services/admin';
-import { UserTypes, VerifyOTPpayloadType } from '../../../services/workers/types';
+import { VerifyOTPpayloadType } from '../../../services/workers/types';
+import { UserTypes } from '../../../types';
 
 export const registerAdminController = async (req: Request, res: Response, next: NextFunction) => {
     try {

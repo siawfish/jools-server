@@ -1,45 +1,28 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { validateAcceptedTerms, validateDocuments, validateEmail, validateLocation, validatePhoneNumber, validateSkillProperties, validateSkills, validateWorkRate } from '../../../helpers/constants.js';
+import { validateAcceptedTerms, validateGhanaCard, validateEmail, validateLocation, validatePhoneNumber, validateSkills } from '../../../helpers/constants.js';
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp/index.js';
 import sendSms, { constructVerificationSms } from '../../../services/sms/index.js';
-import { AccountTypes, Status, UserTypes, VerifyOTPpayloadType, WorkerType } from '../../../services/workers/types.js';
-import { createWorker, getWorkerById, getWorkerByPhoneNumber, updateWorker } from '../../../services/workers/index.js';
+import { VerifyOTPpayloadType, WorkerType, Skill } from '../../../services/workers/types.js';
+import { getWorkerById, getWorkerByPhoneNumber, updateWorker } from '../../../services/workers/index.js';
 import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
-import { SkillType } from '../../../services/skills/types';
+import { SkillType } from '../../../types';
 import { getSkillById } from '../../../services/skills';
+import { Status, UserTypes } from '../../../types';
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { 
-            firstName,
-            lastName,
-            companyName,
+            name,
+            email,
+            avatar,
             phoneNumber,
             location,
+            workingHours,
+            ghanaCard,
             acceptedTerms,
-            type,
-            documents,
-            email,
             skills,
-            properties
          }: WorkerType = req.body;
-        if(type !== AccountTypes.INDIVIDUAL && type !== AccountTypes.COMPANY) {
-            throw new Error("Invalid Account Type")
-        }
-        if(type === AccountTypes.INDIVIDUAL) {
-            if(!firstName?.trim()) {
-                throw new Error("First Name is required")
-            }
-            if(!lastName?.trim()) {
-                throw new Error("Last Name is required")
-            }
-        }
-        if(type === AccountTypes.COMPANY) {
-            if(!companyName?.trim()) {
-                throw new Error("Company Name is required")
-            }
-        }
         if(!validatePhoneNumber(phoneNumber?.trim())) {
             throw new Error("Phone Number is required")
         }
@@ -52,63 +35,47 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!validateAcceptedTerms(acceptedTerms)) {
             throw new Error("Accepted Terms is required")
         }
-        if(documents) {
-            if(!validateDocuments(documents)) {
-                throw new Error("Documents is required")
+        if(ghanaCard) {
+            if(!validateGhanaCard(ghanaCard)) {
+                throw new Error("Ghana Card is required")
             }
         }
-        if(!validateSkills(skills as string[])) {
+        if(!validateSkills(skills as Skill[])) {
             throw new Error("Invalid Skills")
         }
-        if(!validateSkillProperties(properties)){
-            throw new Error("Properties are invalid")
-        }
-        const propertySkills = properties.map((property) => property.skillId);
-        const invalidSkills = propertySkills.filter((skill) => !skills.includes(skill));
-        if(invalidSkills.length > 0) {
-            throw new Error(`Invalid Properties: ${invalidSkills.join(", ")}`)
-        }
-        const skillsArr = [] as SkillType[];
         const errorsArr = [] as string[];
-        const SkillsPromises = (skills as string[]).map(async (id) => {
-            return getSkillById(id);
-        });
-        const skillsData = await Promise.all(SkillsPromises);
-        skillsData.forEach((skill) => {
-            if(skill?.error) {
-                errorsArr.push(skill.error)
-            }
-            if(skill?.data) {
-                skillsArr.push(skill.data)
-            }
-        });
         if(errorsArr.length > 0) {
             throw new Error(errorsArr.join(", "))
         }
-        const { error, data } = await createWorker({
-            firstName,
-            lastName,
-            companyName,
-            phoneNumber,
-            location,
-            acceptedTerms,
-            type,
-            documents,
-            email,
-            skills,
-            properties
-        });
-        if(error) {
-            throw new Error(error)
-        }
-        if(!data) {
-            throw new Error("An error occurred")
-        }
+        // const { error, data } = await createWorker({
+        //     firstName,
+        //     lastName,
+        //     companyName,
+        //     phoneNumber,
+        //     location,
+        //     acceptedTerms,
+        //     type,
+        //     documents,
+        //     email,
+        //     skills,
+        //     properties
+        // });
+        // if(error) {
+        //     throw new Error(error)
+        // }
+        // if(!data) {
+        //     throw new Error("An error occurred")
+        // }
         return res.status(201).json({
             message: "User registered successfully",
             data: {
-                ...data,
-                skills: skillsArr
+                name,
+                email,
+                avatar,
+                phoneNumber,
+                location,
+                workingHours,
+                ghanaCard,
             }
         })
     } catch (error:any) {
@@ -181,8 +148,8 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
             throw new Error("An error occurred verifying OTP")
         }
         if(_w?.data?.id) {
-            if(_w?.data?.status === Status.DELETED) {
-                await updateWorker(_w?.data?.id, { status: Status.ACTIVE });
+            if(_w?.data?.accountStatus === Status.DELETED) {
+                await updateWorker(_w?.data?.id, { accountStatus: Status.ACTIVE });
             }
             const token = createJwtToken({
                 id: _w?.data?.id,
@@ -230,8 +197,8 @@ export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response
             throw new Error("An error occurred")
         }
         const skills = [] as SkillType[];
-        const SkillsPromises = (data?.skills).map(async (id) => {
-            return getSkillById(id);
+        const SkillsPromises = (data?.skills).map(async (skill: Skill) => {
+            return getSkillById(skill.id);
         });
         const skillsData = await Promise.all(SkillsPromises);
         skillsData.forEach((skill) => {

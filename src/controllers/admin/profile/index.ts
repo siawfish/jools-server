@@ -3,7 +3,7 @@ import { errorResponse } from '../../../helpers/errorHandlers.js';
 import { validateEmail, validatePhoneNumber, validateUserRole } from '../../../helpers/constants.js';
 import { AdminType } from '../../../services/admin/types.js';
 import { deleteAdmin, getAdminById, updateAdmin } from '../../../services/admin/index.js';
-import { UserTypes } from '../../../services/workers/types.js';
+import { UserTypes } from '../../../types';
 
 export const getAdminController = async (req: Request, res: Response, next: NextFunction) => {
     try {

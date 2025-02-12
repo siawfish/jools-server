@@ -1,89 +1,88 @@
+import { Status, Theme } from "../../types";
+
 export interface WorkerType {
-  avatar?: string;
-  firstName?: string;
-  lastName?: string;
-  companyName?: string;
-  phoneNumber: string;
-  location: LocationType;
-  acceptedTerms: AcceptedTermsType;
-  type: AccountTypes;
-  documents?: DocumentsType;
-  email: string;
-  skills: string[];
-  score?: number;
-  rating?: number;
-  pushToken?: string;
-  workingHours?: WorkingDayType[];
   id?: string;
-  properties: SkillProperties[];
-  status?: Status;
-}
-
-export enum Status {
-  DELETED = 2,
-  ACTIVE = 1,
-  INACTIVE = 0,
-}
-
-
-export interface SkillProperties {
-  skillId: string;
   name: string;
-  description: string;
-  rate: number;
+  email: string;
+  avatar: string;
+  phoneNumber: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+  accountStatus?: Status;
+  settings?: Settings;
+  acceptedTerms: AcceptedTermsType;
+  location: LocationType;
+  isVerified?: boolean;
+  workingHours: WorkingHours;
+  ghanaCard?: GhanaCard;
+  skills: Skill[];
+  rating?: number;
 }
-  export interface WorkingDayType {
-    day: DaysOfTheWeekType;
-    start: string;
-    end: string;
-  }
 
-  export enum DaysOfTheWeekType {
-    MONDAY = "MONDAY",
-    TUESDAY = "TUESDAY",
-    WEDNESDAY = "WEDNESDAY",
-    THURSDAY = "THURSDAY",
-    FRIDAY = "FRIDAY",
-    SATURDAY = "SATURDAY",
-    SUNDAY = "SUNDAY",
-  }
+export interface Settings {
+  notifications: Notifications;
+  theme: Theme;
+  language: string;
+  currency: string;
+  timezone: string;
+}
 
-  
-  export enum UserTypes {
-    WORKER = "WORKER",
-    USER = "USER",
-    ADMIN = "ADMIN",
-    SUPER_ADMIN = "SUPER_ADMIN",
-  }
+export interface Notifications {
+  token: string;
+  enabled: boolean;
+}
 
-  export enum AccountTypes {
-    INDIVIDUAL = "INDIVIDUAL",
-    COMPANY = "COMPANY",
-  }
-  
-  export interface AcceptedTermsType {
-    status: boolean;
-    acceptedAt: Date;
-  }
-  
-  export interface LocationType {
-    lat: number;
-    lng: number;
-  }
-  
-  export interface DocumentsType {
-    url: string;
-    isVerified: boolean;
-  }
-  
-  export interface SkillType {
-    id: string;
-    name: string;
-    icon: string;
+export interface GhanaCard {
+  number: string;
+  front: string;
+  back: string;
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  rate: number;
+  yearsOfExperience: number;
+  icon?: string;
+}
+
+export enum DaysOfTheWeekType {
+  MONDAY = "MONDAY",
+  TUESDAY = "TUESDAY",
+  WEDNESDAY = "WEDNESDAY",
+  THURSDAY = "THURSDAY",
+  FRIDAY = "FRIDAY",
+  SATURDAY = "SATURDAY",
+  SUNDAY = "SUNDAY",
+}
+
+export interface WorkingHours {
+  [key: string]: {
+    from: string;
+    to: string;
+    enabled: boolean;
   };
+}
   
-  export interface VerifyOTPpayloadType { 
-    otp: string;
-    referenceId: string;
-    phoneNumber: string 
-  }
+export interface AcceptedTermsType {
+  status: boolean;
+  acceptedAt: Date;
+}
+  
+export interface LocationType {
+  address?: string;
+  lat: number;
+  lng: number;
+}
+  
+export interface DocumentsType {
+  url: string;
+  isVerified: boolean;
+}
+  
+export interface VerifyOTPpayloadType { 
+  otp: string;
+  referenceId: string;
+  phoneNumber: string 
+}

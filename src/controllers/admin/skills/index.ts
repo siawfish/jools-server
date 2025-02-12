@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers.js';
 import { createSkill, deleteSkill, getSkillById, getSkills, updateSkill } from '../../../services/skills/index.js';
-import { SkillType } from '../../../services/skills/types.js';
-import { UserTypes } from '../../../services/workers/types.js';
+import { SkillType, UserTypes } from '../../../types';
 
 export const getSkillsController = async (req: Request, res: Response, next: NextFunction) => {
     try {

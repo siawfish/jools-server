@@ -6,7 +6,8 @@ import sendSms, { constructVerificationSms } from '../../../services/sms/index.j
 import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
 import { createUser, getUserById, getUserByPhoneNumber } from '../../../services/users';
 import { ClientType } from '../../../services/users/type';
-import { UserTypes, VerifyOTPpayloadType } from '../../../services/workers/types';
+import { UserTypes } from '../../../types';
+import { VerifyOTPpayloadType } from '../../../services/workers/types';
 
 export const registerUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {

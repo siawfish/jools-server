@@ -1,12 +1,22 @@
 import { formatDbError } from "../../helpers/constants";
-import { getXataClient } from "../../xata";
 import { BookingType } from "./types";
 
-const xata = getXataClient();
 
 export const createBooking = async (booking: BookingType): Promise<{error?:string; data?:BookingType}> => {
     try {
-        const dbBooking = await xata.db.bookings.create(booking)
+        const dbBooking = {
+            id: "123",
+            start: new Date(),
+            end: new Date(),
+            timelines: [],
+            workerId: "123",
+            userId: "123",
+            day: new Date(),
+            description: "Booking for a plumbing job",
+            media: [],
+            estimatedFee: 100,
+            skills: [],
+        }
         return { data: dbBooking as BookingType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
@@ -15,7 +25,19 @@ export const createBooking = async (booking: BookingType): Promise<{error?:strin
 
 export const getBookingById = async (id: string): Promise<{error?:string; data?:BookingType}> => {
     try {
-        const booking = await xata.db.bookings.filter({ id }).getFirst();
+        const booking = {
+            id: "123",
+            start: new Date(),
+            end: new Date(),
+            timelines: [],
+            workerId: "123",
+            userId: "123",
+            day: new Date(),
+            description: "Booking for a plumbing job",
+            media: [],
+            estimatedFee: 100,
+            skills: [],
+        }
         if(!booking) {
             throw new Error(`Booking with id "${id}" does not exist`)
         }
@@ -27,8 +49,8 @@ export const getBookingById = async (id: string): Promise<{error?:string; data?:
 
 export const getBookingsByUserId = async (userId: string): Promise<{error?:string; data?:BookingType[]}> => {
     try {
-        const bookings = await xata.db.bookings.filter({ userId }).getAll();
-        return { data: bookings as BookingType[] }
+        const bookings = [] as BookingType[];
+        return { data: bookings }
     } catch (error:any) {
         return { error: error?.message }
     }
@@ -36,8 +58,8 @@ export const getBookingsByUserId = async (userId: string): Promise<{error?:strin
 
 export const getBookingsByWorkerId = async (workerId: string): Promise<{error?:string; data?:BookingType[]}> => {
     try {
-        const bookings = await xata.db.bookings.filter({ workerId }).getAll();
-        return { data: bookings as BookingType[] }
+        const bookings = [] as BookingType[];
+        return { data: bookings }
     } catch (error:any) {
         return { error: error?.message }
     }
@@ -45,7 +67,19 @@ export const getBookingsByWorkerId = async (workerId: string): Promise<{error?:s
 
 export const updateBooking = async (id: string, booking: BookingType): Promise<{error?:string; data?:BookingType}> => {
     try {
-        const dbBooking = await xata.db.bookings.update(id, booking)
+        const dbBooking = {
+            id: "123",
+            start: new Date(),
+            end: new Date(),
+            timelines: [],
+            workerId: "123",
+            userId: "123",
+            day: new Date(),
+            description: "Booking for a plumbing job",
+            media: [],
+            estimatedFee: 100,
+            skills: [],
+        }
         return { data: dbBooking as BookingType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
@@ -54,7 +88,19 @@ export const updateBooking = async (id: string, booking: BookingType): Promise<{
 
 export const deleteBooking = async (id: string): Promise<{error?:string; data?:BookingType}> => {
     try {
-        const dbBooking = await xata.db.bookings.delete(id)
+        const dbBooking = {
+            id: "123",
+            start: new Date(),
+            end: new Date(),
+            timelines: [],
+            workerId: "123",
+            userId: "123",
+            day: new Date(),
+            description: "Booking for a plumbing job",
+            media: [],
+            estimatedFee: 100,
+            skills: [],
+        }
         return { data: dbBooking as BookingType }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }

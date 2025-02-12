@@ -16,30 +16,30 @@ import searchRoutes from './users/search.js'
 
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
-    workersProfileRoutes: workerProfileRoutes,
-    workersPortfolioRoutes: portfolioRoutes,
-    workersFilesRoutes: workerFilesRoutes,
-    workersSkillsRoutes: workerSkillsRoutes
+    // workersProfileRoutes: workerProfileRoutes,
+    // workersPortfolioRoutes: portfolioRoutes,
+    // workersFilesRoutes: workerFilesRoutes,
+    // workersSkillsRoutes: workerSkillsRoutes
 }
 
-const userRouter = {
-    usersAuthRoutes: userAuthRoutes,
-    usersFilesRoutes: usersFilesRoutes,
-    usersProfileRoutes: usersProfileRoutes,
-    usersBookingRoutes: usersBookingRoutes,
-    usersSkillsRoutes: usersSkillsRoutes,
-    searchRoutes: searchRoutes
-}
+// const userRouter = {
+//     usersAuthRoutes: userAuthRoutes,
+//     usersFilesRoutes: usersFilesRoutes,
+//     usersProfileRoutes: usersProfileRoutes,
+//     usersBookingRoutes: usersBookingRoutes,
+//     usersSkillsRoutes: usersSkillsRoutes,
+//     searchRoutes: searchRoutes
+// }
 
-const adminRouter = {
-    adminAuthRoutes: adminAuthRoutes,
-    adminProfileRoutes: adminProfileRoutes,
-    adminSkillsRoutes: adminSkillsRoutes,
-    adminWorkersRoutes: adminWorkersRoutes
-}
+// const adminRouter = {
+//     adminAuthRoutes: adminAuthRoutes,
+//     adminProfileRoutes: adminProfileRoutes,
+//     adminSkillsRoutes: adminSkillsRoutes,
+//     adminWorkersRoutes: adminWorkersRoutes
+// }
 
 export {
     workerRouter,
-    userRouter,
-    adminRouter
+    // userRouter,
+    // adminRouter
 }
