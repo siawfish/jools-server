@@ -1,14 +1,24 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { validateAcceptedTerms, validateGhanaCard, validateEmail, validateLocation, validatePhoneNumber, validateSkills } from '../../../helpers/constants.js';
-import { createOtp, removeOtp, verifyOtp } from '../../../services/otp/index.js';
-import sendSms, { constructVerificationSms } from '../../../services/sms/index.js';
-import { VerifyOTPpayloadType, WorkerType, Skill } from '../../../services/workers/types.js';
-import { getWorkerById, getWorkerByPhoneNumber, updateWorker } from '../../../services/workers/index.js';
-import { addToBlacklist, createJwtToken, isTokenBlacklisted, verifyJwtToken } from '../../../services/jwt';
-import { SkillType } from '../../../types';
-import { getSkillById } from '../../../services/skills';
-import { Status, UserTypes } from '../../../types';
+import { createWorker, getWorkerById, getWorkerByPhoneNumber } from '../../../services/workers/index.js';
+import { WorkerRegisterPayload } from './type';
+import { 
+    validateAcceptedTerms, 
+    validateGhanaCard, 
+    validateLocation, 
+    validateEmail, 
+    validatePhoneNumber, 
+    validateSkills, 
+    validateWorkingHours,
+    constructVerificationSms,
+    createJwtToken,
+    isTokenBlacklisted,
+    verifyJwtToken,
+    addToBlacklist
+} from './helpers';
+import { createOtp, removeOtp, verifyOtp } from '../../../services/otp';
+import { sendSms } from '../../../services/sms';
+import { UserTypes, SkillType } from '../../../types';
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -22,64 +32,50 @@ export const registerController = async (req: Request, res: Response, next: Next
             ghanaCard,
             acceptedTerms,
             skills,
-         }: WorkerType = req.body;
+         }: WorkerRegisterPayload = req.body;
+        const errorsArr = [] as string[];
+        if(!name) {
+            errorsArr.push("Name is required")
+        }
+        if(!avatar) {
+            errorsArr.push("Avatar is required")
+        }
         if(!validatePhoneNumber(phoneNumber?.trim())) {
-            throw new Error("Phone Number is required")
+            errorsArr.push("Phone Number is required")
         }
         if(!validateLocation(location)) {
-            throw new Error("Location is required")
+            errorsArr.push("Location is required")
         }
         if(!validateEmail(email?.trim())) {
-            throw new Error("Email is required")
+            errorsArr.push("Email is required")
         }
         if(!validateAcceptedTerms(acceptedTerms)) {
-            throw new Error("Accepted Terms is required")
+            errorsArr.push("Accepted Terms is required")
         }
         if(ghanaCard) {
             if(!validateGhanaCard(ghanaCard)) {
-                throw new Error("Ghana Card is required")
+                errorsArr.push("Ghana Card is required")
             }
         }
-        if(!validateSkills(skills as Skill[])) {
-            throw new Error("Invalid Skills")
+        if(!validateSkills(skills)) {
+            errorsArr.push("Invalid Skills")
         }
-        const errorsArr = [] as string[];
+        if(!validateWorkingHours(workingHours)) {
+            errorsArr.push("Invalid Working Hours")
+        }
         if(errorsArr.length > 0) {
             throw new Error(errorsArr.join(", "))
         }
-        // const { error, data } = await createWorker({
-        //     firstName,
-        //     lastName,
-        //     companyName,
-        //     phoneNumber,
-        //     location,
-        //     acceptedTerms,
-        //     type,
-        //     documents,
-        //     email,
-        //     skills,
-        //     properties
-        // });
-        // if(error) {
-        //     throw new Error(error)
-        // }
-        // if(!data) {
-        //     throw new Error("An error occurred")
-        // }
+        const { error, data } = await createWorker(req.body);
+        if(error || !data?.id) {
+            throw new Error(error)
+        }
         return res.status(201).json({
             message: "User registered successfully",
-            data: {
-                name,
-                email,
-                avatar,
-                phoneNumber,
-                location,
-                workingHours,
-                ghanaCard,
-            }
+            data
         })
     } catch (error:any) {
-        errorResponse(error?.message, res)
+        errorResponse(error?.message, res, 400)
     }
 }
 
@@ -89,21 +85,20 @@ export const verifyWorkerPhoneNumberController = async (req: Request, res: Respo
         if(!validatePhoneNumber(phoneNumber.trim())) {
             throw new Error("Phone Number is required")
         }
-        const { error, data } = await createOtp({ phoneNumber });
+        const { error, data } = await createOtp(phoneNumber);
         if(error) {
+            if(error.includes("already in use")) {
+                throw new Error("Pending Verification")
+            }
             throw new Error(error)
         }
         if(!data) {
             throw new Error("An error occurred")
         }
-        const content = constructVerificationSms(data.otp);
-        const options = {
-            to: phoneNumber,
-            content,
-        }
-        const { error: smsError } = await sendSms(options);
+        const message = constructVerificationSms(data.otp);
+        const { error: smsError } = await sendSms(phoneNumber, message);
         if(smsError){
-            removeOtp({ referenceId: data.referenceId });
+            removeOtp(data.referenceId);
             throw new Error("An error occurred sending sms, please resend code")
         }
         return res.status(200).json({
@@ -120,11 +115,11 @@ export const verifyWorkerPhoneNumberController = async (req: Request, res: Respo
 
 export const verifyWorkerOTPController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { otp, referenceId, phoneNumber } : VerifyOTPpayloadType = req.body;
+        const { otp, referenceId, phoneNumber } = req.body;
         if(!otp) {
             throw new Error("OTP is required")
         }
-        if(otp.length !== 4) {
+        if(otp.length !== 6) {
             throw new Error("Invalid OTP")
         }
         if(!referenceId) {
@@ -138,7 +133,7 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
         }
 
         const [_o, _w] = await Promise.all([
-            verifyOtp({ otp, referenceId, phoneNumber }),
+            verifyOtp(referenceId, otp),
             getWorkerByPhoneNumber(phoneNumber)
         ]);
         if(_o?.error) {
@@ -147,14 +142,9 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
         if(!_o?.data) {
             throw new Error("An error occurred verifying OTP")
         }
+        removeOtp(referenceId);
         if(_w?.data?.id) {
-            if(_w?.data?.accountStatus === Status.DELETED) {
-                await updateWorker(_w?.data?.id, { accountStatus: Status.ACTIVE });
-            }
-            const token = createJwtToken({
-                id: _w?.data?.id,
-                type: UserTypes.WORKER
-            })
+            const token = createJwtToken(_w?.data?.id, UserTypes.WORKER)
             if(token){
                 return res.status(200).json({
                     message: "Phone Number Verified Successfully",
@@ -196,20 +186,7 @@ export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response
         if(!data) {
             throw new Error("An error occurred")
         }
-        const skills = [] as SkillType[];
-        const SkillsPromises = (data?.skills).map(async (skill: Skill) => {
-            return getSkillById(skill.id);
-        });
-        const skillsData = await Promise.all(SkillsPromises);
-        skillsData.forEach((skill) => {
-            if(skill?.data) {
-                skills.push(skill.data)
-            }
-        });
-        res.locals.user = {
-            ...data,
-            skills
-        };
+        res.locals.user = data;
         next();
     } catch (error:any) {
         errorResponse("Bearer token is invalid", res)
@@ -218,7 +195,7 @@ export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response
 
 export const meController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = res.locals.user as WorkerType;
+        const user = res.locals.user
         return res.status(200).json({
             message: "User fetched successfully",
             data: user

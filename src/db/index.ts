@@ -1,10 +1,8 @@
-import { RDSDataClient } from "@aws-sdk/client-rds-data";
-import { drizzle } from 'drizzle-orm/aws-data-api/pg';
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
 
-const client = new RDSDataClient({ region: process.env.AWS_REGION });
+const connectionString = process.env.DATABASE_URL!
 
-export const db = drizzle(client, {
-  secretArn: process.env.DB_SECRET_ARN!,
-  resourceArn: process.env.DB_CLUSTER_ARN!,
-  database: process.env.DB_NAME!,
-});
+// Disable prefetch as it is not supported for "Transaction" pool mode
+export const client = postgres(connectionString, { prepare: false })
+export const db = drizzle(client);

@@ -13,6 +13,7 @@
     "@types/express-fileupload": "^1.5.0",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.2",
+    "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.30.4",
     "nodemon": "^3.1.0",
     "tsx": "^4.19.2",
@@ -21,10 +22,12 @@
   "scripts": {
     "build": "npx tsc",
     "start": "bun run dist/src/index.js",
-    "dev": "tsc -w & bun run dist/src/index.js"
+    "dev": "bun --watch src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "npx drizzle-kit push"
   },
   "dependencies": {
-    "@aws-sdk/client-rds-data": "^3.744.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cloudinary": "^2.1.0",
@@ -35,6 +38,7 @@
     "express-fileupload": "^1.5.0",
     "jsonwebtoken": "^9.0.2",
     "path": "^0.12.7",
+    "postgres": "^3.4.5",
     "typesense": "^1.8.2"
   },
   "resolutions": {

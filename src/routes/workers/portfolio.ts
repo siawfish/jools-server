@@ -1,8 +1,18 @@
 import express from "express";
-import { verifyWorkerJwtTokenMiddleware } from "../../controllers/workers/auth/index.js";
-import { createPortfolioController } from "../../controllers/workers/portfolio/index.js";
+import {
+  createPortfolioController,
+  getPortfolioByIdController,
+  getWorkerPortfoliosController,
+  updatePortfolioController,
+  deletePortfolioController,
+} from "../../controllers/workers/portfolio/index";
+import { verifyWorkerJwtTokenMiddleware } from "../../controllers/workers/auth/index";
 
 const router = express.Router();
-router.post("/portfolio", verifyWorkerJwtTokenMiddleware, createPortfolioController);
+router.post("/", verifyWorkerJwtTokenMiddleware, createPortfolioController);
+router.get("/:id", verifyWorkerJwtTokenMiddleware, getPortfolioByIdController);
+router.get("/", verifyWorkerJwtTokenMiddleware, getWorkerPortfoliosController);
+router.put("/:id", verifyWorkerJwtTokenMiddleware, updatePortfolioController);
+router.delete("/:id", verifyWorkerJwtTokenMiddleware, deletePortfolioController);
 
 export default router;

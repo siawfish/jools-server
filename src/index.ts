@@ -4,8 +4,7 @@ import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import config from '../config/index.js';
-import { workerRouter } from './routes/index.js';
-import cloudinaryConfig from '../config/cloudinary.js';
+import { workerRouter, assetsRouter } from './routes/index.js';
 import typesense, { typesenseWorkerSchema } from '../config/typesense.js';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection.js';
@@ -26,8 +25,6 @@ app.use(
     })
 );
 
-cloudinaryConfig();
-
 typesense.collections().retrieve().then((collections: CollectionSchema[]) => {
     const workerCollectionExists = collections.some(collection => collection['name'] === 'workers');
 
@@ -45,10 +42,13 @@ typesense.collections().retrieve().then((collections: CollectionSchema[]) => {
     console.log(error?.message);
 });
 
+// assets routes
+app.use('/api/assets', assetsRouter.assetsRoutes);
+
 // workers routes
 app.use('/api/workers/auth', workerRouter.workersAuthRoutes);
 // app.use('/api/workers', workerRouter.workersProfileRoutes);
-// app.use('/api/workers', workerRouter.workersPortfolioRoutes);
+app.use('/api/workers/portfolio', workerRouter.workersPortfolioRoutes);
 // app.use('/api/workers', workerRouter.workersFilesRoutes);
 // app.use('/api/workers', workerRouter.workersSkillsRoutes);
 

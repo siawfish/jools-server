@@ -1,87 +1,72 @@
-import config from "../../../config/index.js";
-import { formatDbError } from "../../helpers/constants.js";
-import { OtpType } from "./types.js";
+import { eq, sql } from "drizzle-orm";
+import { db } from "../../db";
+import { otpTable } from "../../db/schema";
+import { randomUUID } from "node:crypto";
+import { formatDbError } from "../../helpers/errorHandlers";
 
-export async function createOtp({
-  phoneNumber,
-}: {
-  phoneNumber: string;
-}): Promise<{ error?: string; data?: OtpType }> {
-  try {
-    const otp = Math.floor(1000 + Math.random() * 9000);
+export const createOtp = async (phoneNumber: string) => {
     try {
-      const savedOtp = {
-        id: "123",
-        phoneNumber,
-        code: otp.toString(),
-        loginAttempts: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-      return {
-        data: {
-          phoneNumber,
-          otp: otp.toString(),
-          referenceId: savedOtp.id,
-        },
-      };
-    } catch (error: any) {
-      throw new Error(formatDbError(error?.message, "is pending verification"));
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpData = await db.insert(otpTable).values({
+            phoneNumber,
+            otp,
+            referenceId: randomUUID(),
+            createdAt: sql`now()`,
+        }).returning();
+        return {
+            error: null,
+            data: {
+                referenceId: otpData[0].referenceId,
+                phoneNumber: otpData[0].phoneNumber,
+                otp: otpData[0].otp,
+            },
+        };
+    } catch (error:any) {
+        return {
+            error: formatDbError(error)
+        }
     }
-  } catch (error: any) {
-    return { error: error?.message };
-  }
 }
 
-export async function removeOtp({ referenceId }: { referenceId: string }) {
-  try {
-    return { data: "OTP removed successfully" };
-  } catch (error: any) {
-    return { error: error?.message };
-  }
+export const removeOtp = async (referenceId: string) => {
+    try {
+        await db.delete(otpTable).where(eq(otpTable.referenceId, referenceId));
+        return {
+            error: null,
+            data: true
+        }
+    } catch (error:any) {
+        return {
+            error: formatDbError(error),
+            data: false
+        }
+    }
 }
 
-export async function verifyOtp({
-  otp,
-  referenceId,
-  phoneNumber,
-}: {
-  otp: string;
-  referenceId: string;
-  phoneNumber: string;
-}): Promise<{ error?: string; data?: string }> {
-  try {
-    const savedOtp = {
-      id: "123",
-      phoneNumber,
-      code: otp.toString(),
-      loginAttempts: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+export const verifyOtp = async (referenceId: string, otp: string) => {
+    try {
+        const otpData = await db.select().from(otpTable).where(eq(otpTable.referenceId, referenceId));
+        if(otpData.length === 0) {
+            throw new Error("OTP not found")
+        }
+        if(otpData[0].otp !== otp) {
+            throw new Error("Invalid OTP")
+        }
+        // check if otp was created more than 5 minutes ago
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        if(otpData[0].createdAt < fiveMinutesAgo) {
+            await removeOtp(referenceId);
+            throw new Error("OTP expired")
+        }
+        return {
+            error: null,
+            data: true
+        }
+    } catch (error:any) {
+        const errorMessage = error.message || formatDbError(error);
+        return {
+            error: errorMessage,
+            data: false
+        }
     }
-    if (!savedOtp) {
-      return { error: "Invalid OTP" };
-    }
-    // check if the otp is expired
-    const currentTime = new Date().getTime();
-    const otpTime = new Date(savedOtp.createdAt).getTime();
-    if (currentTime - otpTime > config.otp_expiry) {
-      throw new Error("OTP expired");
-    }
-    const loginAttempts = savedOtp?.loginAttempts ?? 0;
-    if (loginAttempts >= config.login_attempts) {
-      throw new Error("Exceeded maximum verification attempts");
-    }
-    if (savedOtp.code !== otp) {
-      savedOtp.loginAttempts = loginAttempts + 1;
-      throw new Error("Invalid OTP");
-    }
-    if (savedOtp.phoneNumber !== phoneNumber) {
-      savedOtp.loginAttempts = loginAttempts + 1;
-      throw new Error("Invalid phone number");
-    }
-    return { data: "OTP verified successfully" };
-  } catch (error: any) {
-    return { error: error?.message };
-  }
 }

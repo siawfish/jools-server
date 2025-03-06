@@ -1,88 +1,20 @@
 import { Status, Theme } from "../../types";
+import { InferInsertModel } from 'drizzle-orm';
+import { usersTable, workerTable, skillTable } from '../../db/schema';
 
-export interface WorkerType {
-  id?: string;
-  name: string;
-  email: string;
-  avatar: string;
-  phoneNumber: string;
-  createdAt?: string;
-  updatedAt?: string;
-  deletedAt?: string | null;
-  accountStatus?: Status;
-  settings?: Settings;
-  acceptedTerms: AcceptedTermsType;
-  location: LocationType;
-  isVerified?: boolean;
-  workingHours: WorkingHours;
-  ghanaCard?: GhanaCard;
+// Infer the types from your schema
+export type User = InferInsertModel<typeof usersTable>;
+export type Worker = InferInsertModel<typeof workerTable> & User;
+export type Skill = InferInsertModel<typeof skillTable>;
+
+// You can also create types for inserts if needed
+export type NewUser = InferInsertModel<typeof usersTable>;
+export type NewWorker = InferInsertModel<typeof workerTable>;
+
+// Example of combining types
+export type WorkerWithUser = User & Worker;
+
+// Example of extending types
+export type WorkerResponse = WorkerWithUser & {
   skills: Skill[];
-  rating?: number;
-}
-
-export interface Settings {
-  notifications: Notifications;
-  theme: Theme;
-  language: string;
-  currency: string;
-  timezone: string;
-}
-
-export interface Notifications {
-  token: string;
-  enabled: boolean;
-}
-
-export interface GhanaCard {
-  number: string;
-  front: string;
-  back: string;
-}
-
-export interface Skill {
-  id: string;
-  name: string;
-  rate: number;
-  yearsOfExperience: number;
-  icon?: string;
-}
-
-export enum DaysOfTheWeekType {
-  MONDAY = "MONDAY",
-  TUESDAY = "TUESDAY",
-  WEDNESDAY = "WEDNESDAY",
-  THURSDAY = "THURSDAY",
-  FRIDAY = "FRIDAY",
-  SATURDAY = "SATURDAY",
-  SUNDAY = "SUNDAY",
-}
-
-export interface WorkingHours {
-  [key: string]: {
-    from: string;
-    to: string;
-    enabled: boolean;
-  };
-}
-  
-export interface AcceptedTermsType {
-  status: boolean;
-  acceptedAt: Date;
-}
-  
-export interface LocationType {
-  address?: string;
-  lat: number;
-  lng: number;
-}
-  
-export interface DocumentsType {
-  url: string;
-  isVerified: boolean;
-}
-  
-export interface VerifyOTPpayloadType { 
-  otp: string;
-  referenceId: string;
-  phoneNumber: string 
-}
+};

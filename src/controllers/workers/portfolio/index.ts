@@ -1,49 +1,130 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { createPortfolio } from '../../../services/portfolio';
-import { MediaTypes, PortfolioType } from '../../../services/portfolio/types';
-import { validateResources } from '../../../helpers/constants';
+import { 
+    createPortfolio, 
+    getPortfolioById, 
+    getPortfoliosByWorkerId, 
+    updatePortfolio, 
+    deletePortfolio 
+} from '../../../services/workers/portfolio';
+import { validatePortfolioPayload, validateUpdatePortfolioPayload } from './helpers';
+import { CreatePortfolioPayload, UpdatePortfolioPayload } from './type';
 
 export const createPortfolioController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { caption, type, resources } = req.body as Partial<PortfolioType>;
-        const { user } = res.locals;
-        if(!user?.id) {
-            throw new Error("Authentication required")
+        const payload: CreatePortfolioPayload = {
+            ...req.body,
+            createdBy: res.locals.user.id
+        };
+
+        const errors = validatePortfolioPayload(payload);
+        if (errors.length > 0) {
+            throw new Error(errors.join(', '));
         }
-        if(type !== MediaTypes.IMAGE && type !== MediaTypes.VIDEO && type !== MediaTypes.AUDIO) {
-            throw new Error("Invalid media type")
+
+        const { error, data } = await createPortfolio(payload);
+        if (error || !data?.id) {
+            throw new Error(error);
         }
-        if(!resources) {
-            throw new Error("Resources is required")
-        }
-        if(resources.length < 1) {
-            throw new Error("At least one resource is required")
-        }
-        
-        if(!validateResources(resources)) {
-            throw new Error("Invalid resources")
-        }
-        if(!caption) {
-            throw new Error("Caption is required")
-        }
-        const { error, data } = await createPortfolio({
-            caption: caption.trim(),
-            type,
-            resources,
-            createdBy: user?.id
-        });
-        if(error) {
-            throw new Error(error)
-        }
-        if(!data) {
-            throw new Error("An error occurred")
-        }
+
         return res.status(201).json({
-            message: "Portfolio created successfully",
+            message: 'Portfolio created successfully',
             data
-        })
-    } catch (error:any) {
-        errorResponse(error?.message, res, 400)
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
     }
-}
+};
+
+export const getPortfolioByIdController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Portfolio ID is required');
+        }
+
+        const { error, data } = await getPortfolioById(id);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Portfolio fetched successfully',
+            data
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+export const getWorkerPortfoliosController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const workerId = res.locals.user.id;
+        
+        const { error, data } = await getPortfoliosByWorkerId(workerId);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Portfolios fetched successfully',
+            data: data || []
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+export const updatePortfolioController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Portfolio ID is required');
+        }
+
+        const payload: UpdatePortfolioPayload = {
+            ...req.body,
+            createdBy: res.locals.user.id
+        };
+
+        const errors = validateUpdatePortfolioPayload(payload);
+        if (errors.length > 0) {
+            throw new Error(errors.join(', '));
+        }
+
+        const { error, data } = await updatePortfolio(id, payload);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Portfolio updated successfully',
+            data
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+export const deletePortfolioController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Portfolio ID is required');
+        }
+
+        const workerId = res.locals.user.id;
+        
+        const { error, success } = await deletePortfolio(id, workerId);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Portfolio deleted successfully',
+            success: true
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};

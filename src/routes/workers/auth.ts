@@ -6,7 +6,7 @@ import {
   verifyWorkerJwtTokenMiddleware,
   meController,
   signOutController,
-} from "../../controllers/workers/auth/index.js";
+} from "../../controllers/workers/auth/index";
 
 const router = express.Router();
 router.post("/register", registerController);

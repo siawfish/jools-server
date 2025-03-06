@@ -41,3 +41,64 @@ export interface SkillType {
   createdAt: string;
   updatedAt: string;
 }
+
+export enum DaysOfTheWeekType {
+  MONDAY = "MONDAY",
+  TUESDAY = "TUESDAY",
+  WEDNESDAY = "WEDNESDAY",
+  THURSDAY = "THURSDAY",
+  FRIDAY = "FRIDAY",
+  SATURDAY = "SATURDAY",
+  SUNDAY = "SUNDAY",
+}
+
+export interface WorkingHours extends Record<DaysOfTheWeekType, {
+  from: string;
+  to: string;
+  opened: boolean;
+}> {}
+
+export interface LocationType {
+  address: string;
+  lat: number;
+  lng: number;
+}
+
+export interface GhanaCard {
+  number: string;
+  front: string;
+  back: string;
+  isVerified: boolean;
+}
+
+export interface AcceptedTermsType {
+  status: boolean;
+  acceptedAt: string;
+}
+
+export interface SettingsType {
+  notifications: NotificationsType;
+  theme: Theme;
+  language: LanguageType;
+  currency: CurrencyType;
+  timezone: TimezoneType;
+}
+
+export enum LanguageType {
+  ENGLISH = "en",
+  FRENCH = "fr",
+}
+
+export enum CurrencyType {
+  GHS = "GHS",
+}
+
+export enum TimezoneType {
+  GHANA = "Africa/Accra",
+}
+
+export interface NotificationsType {
+  email: boolean;
+  sms: boolean;
+  pushToken: string;
+}
