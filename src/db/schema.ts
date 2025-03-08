@@ -1,6 +1,7 @@
 import { integer, pgTable, varchar, uuid, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { BookingStatuses, Theme, ServiceLocationType, UserTypes, WorkingHours, SettingsType, LanguageType, CurrencyType, TimezoneType, AcceptedTermsType, LocationType, GhanaCard } from "../types";
+import { Asset } from "../services/assets/type";
 
 export const usersTable = pgTable("users", {
     id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -52,14 +53,14 @@ export const skillTable = pgTable("skills", {
 export const portfolioTable = pgTable("portfolios", {
     id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
     description: varchar({ length: 255 }).notNull(),
-    resources: jsonb("resources").references(() => resourceTable.id).$type<string[]>(),
+    assets: jsonb("assets").references(() => assetTable.id).$type<Asset[]>(),
     skills: jsonb("skills").references(() => skillTable.id).$type<string[]>(),
     createdAt: timestamp("created_at").default(sql`now()`).notNull(),
     updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
     createdBy: uuid("created_by").references(() => usersTable.id),
 });
 
-export const resourceTable = pgTable("resources", {
+export const assetTable = pgTable("assets", {
     id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
     uri: varchar({ length: 255 }).notNull(),
     width: integer("width"),
@@ -94,7 +95,7 @@ export const bookingTable = pgTable("bookings", {
     date: timestamp("date").notNull(),
     startTime: timestamp("start_time").notNull(),
     estimatedEndTime: timestamp("estimated_end_time").notNull(),
-    media: jsonb("media").references(() => resourceTable.id).$type<string[]>(),
+    media: jsonb("media").references(() => assetTable.id).$type<string[]>(),
     serviceType: varchar("service_type", { length: 255 }).notNull().$type<ServiceLocationType>(),
 });
 

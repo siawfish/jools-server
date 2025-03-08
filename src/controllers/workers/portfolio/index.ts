@@ -9,6 +9,7 @@ import {
 } from '../../../services/workers/portfolio';
 import { validatePortfolioPayload, validateUpdatePortfolioPayload } from './helpers';
 import { CreatePortfolioPayload, UpdatePortfolioPayload } from './type';
+import { getSkillsById } from '../../../services/skills';
 
 export const createPortfolioController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -18,6 +19,17 @@ export const createPortfolioController = async (req: Request, res: Response, nex
         };
 
         const errors = validatePortfolioPayload(payload);
+
+        if(payload.skills && payload.skills.length > 0){
+            const skillPromises = payload.skills.map(skill => getSkillsById(skill));
+            const skillsResults = await Promise.all(skillPromises);
+            skillsResults.forEach(({ error, data }) => {
+                if (error) {
+                    throw new Error(error);
+                }
+            });
+        }
+
         if (errors.length > 0) {
             throw new Error(errors.join(', '));
         }

@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "../../db";
-import { portfolioTable, resourceTable } from "../../db/schema";
+import { portfolioTable, assetTable } from "../../db/schema";
 import { formatDbError } from "../../helpers/errorHandlers";
 import { Portfolio, CreatePortfolioPayload, UpdatePortfolioPayload } from "../../controllers/workers/portfolio/type";
 
@@ -8,7 +8,7 @@ export const createPortfolio = async (payload: CreatePortfolioPayload): Promise<
     try {
         const portfolioData = await db.insert(portfolioTable).values({
             description: payload.description,
-            assets: payload.assets || [],
+            assets: payload.assets,
             skills: payload.skills || [],
             createdBy: payload.createdBy,
         }).returning();
@@ -52,7 +52,7 @@ export const updatePortfolio = async (id: string, payload: UpdatePortfolioPayloa
         const portfolioData = await db.update(portfolioTable)
             .set({
                 description: payload.description,
-                resources: payload.resources,
+                assets: payload.assets,
                 skills: payload.skills,
                 updatedAt: new Date(),
             })

@@ -3,7 +3,7 @@ import { Asset } from "../../../services/assets/type";
 export interface Portfolio {
     id: string;
     description: string;
-    resources: string[];
+    assets: Asset[];
     skills: string[];
     createdAt: Date;
     updatedAt: Date;
@@ -19,7 +19,7 @@ export interface CreatePortfolioPayload {
 
 export interface UpdatePortfolioPayload {
     description?: string;
-    resources?: string[];
+    assets?: Asset[];
     skills?: string[];
     createdBy: string;
 }

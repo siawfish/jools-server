@@ -1,10 +1,11 @@
 import workerAuthRoutes from './workers/auth'
 import workerPortfolioRoutes from './workers/portfolio'
 import assetsUploadRoutes from './assets'
-
+import workerSkillsRoutes from './workers/skills'
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
     workersPortfolioRoutes: workerPortfolioRoutes,
+    workersSkillsRoutes: workerSkillsRoutes,
     // workersFilesRoutes: workerFilesRoutes,
     // workersSkillsRoutes: workerSkillsRoutes
 }

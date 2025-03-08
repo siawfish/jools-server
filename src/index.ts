@@ -49,6 +49,7 @@ app.use('/api/assets', assetsRouter.assetsRoutes);
 app.use('/api/workers/auth', workerRouter.workersAuthRoutes);
 // app.use('/api/workers', workerRouter.workersProfileRoutes);
 app.use('/api/workers/portfolio', workerRouter.workersPortfolioRoutes);
+app.use('/api/workers/skills', workerRouter.workersSkillsRoutes);
 // app.use('/api/workers', workerRouter.workersFilesRoutes);
 // app.use('/api/workers', workerRouter.workersSkillsRoutes);
 

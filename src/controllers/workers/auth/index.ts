@@ -19,6 +19,7 @@ import {
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp';
 import { sendSms } from '../../../services/sms';
 import { UserTypes, SkillType } from '../../../types';
+import { getSkillsById } from '../../../services/skills';
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -59,6 +60,15 @@ export const registerController = async (req: Request, res: Response, next: Next
         }
         if(!validateSkills(skills)) {
             errorsArr.push("Invalid Skills")
+        }
+        if(skills && skills.length > 0){
+            const skillPromises = skills.map(skill => getSkillsById(skill));
+            const skillsResults = await Promise.all(skillPromises);
+            skillsResults.forEach(({ error, data }) => {
+                if (error) {
+                    throw new Error("Invalid skills set provided");
+                }
+            });
         }
         if(!validateWorkingHours(workingHours)) {
             errorsArr.push("Invalid Working Hours")
