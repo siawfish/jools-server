@@ -2,22 +2,21 @@ import workerAuthRoutes from './workers/auth'
 import workerPortfolioRoutes from './workers/portfolio'
 import assetsUploadRoutes from './assets'
 import workerSkillsRoutes from './workers/skills'
+import clientAuthRoutes from './clients/auth'
+import clientPortfolioRoutes from './clients/portfolio'
+import clientSkillsRoutes from './clients/skills'
+
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
     workersPortfolioRoutes: workerPortfolioRoutes,
     workersSkillsRoutes: workerSkillsRoutes,
-    // workersFilesRoutes: workerFilesRoutes,
-    // workersSkillsRoutes: workerSkillsRoutes
 }
 
-// const userRouter = {
-//     usersAuthRoutes: userAuthRoutes,
-//     usersFilesRoutes: usersFilesRoutes,
-//     usersProfileRoutes: usersProfileRoutes,
-//     usersBookingRoutes: usersBookingRoutes,
-//     usersSkillsRoutes: usersSkillsRoutes,
-//     searchRoutes: searchRoutes
-// }
+const userRouter = {
+    usersAuthRoutes: clientAuthRoutes,
+    usersPortfolioRoutes: clientPortfolioRoutes,
+    usersSkillsRoutes: clientSkillsRoutes,
+}
 
 // const adminRouter = {
 //     adminAuthRoutes: adminAuthRoutes,
@@ -33,6 +32,6 @@ const assetsRouter = {
 export {
     workerRouter,
     assetsRouter,
-    // userRouter,
+    userRouter,
     // adminRouter
 }

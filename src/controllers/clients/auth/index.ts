@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../../helpers/errorHandlers';
-import { createWorker, getWorkerById, getWorkerByPhoneNumber } from '../../../services/workers/index.js';
-import { WorkerRegisterPayload } from './type';
+import { ClientRegisterPayload } from './type';
 import { 
     validateAcceptedTerms, 
     validateGhanaCard, 
@@ -20,6 +19,7 @@ import { createOtp, removeOtp, verifyOtp } from '../../../services/otp';
 import { sendSms } from '../../../services/sms';
 import { UserTypes } from '../../../types';
 import { getSkillsById } from '../../../services/skills';
+import { createClient, getClientById, getClientByPhoneNumber } from '../../../services/clients';
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -29,11 +29,8 @@ export const registerController = async (req: Request, res: Response, next: Next
             avatar,
             phoneNumber,
             location,
-            workingHours,
-            ghanaCard,
             acceptedTerms,
-            skills,
-         }: WorkerRegisterPayload = req.body;
+         }: ClientRegisterPayload = req.body;
         const errorsArr = [] as string[];
         if(!name) {
             errorsArr.push("Name is required")
@@ -53,30 +50,10 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!validateAcceptedTerms(acceptedTerms)) {
             errorsArr.push("Accepted Terms is required")
         }
-        if(ghanaCard) {
-            if(!validateGhanaCard(ghanaCard)) {
-                errorsArr.push("Ghana Card is required")
-            }
-        }
-        if(!validateSkills(skills)) {
-            errorsArr.push("Invalid Skills")
-        }
-        if(skills && skills.length > 0){
-            const skillPromises = skills.map(skill => getSkillsById(skill));
-            const skillsResults = await Promise.all(skillPromises);
-            skillsResults.forEach(({ error, data }) => {
-                if (error) {
-                    throw new Error("Invalid skills set provided");
-                }
-            });
-        }
-        if(!validateWorkingHours(workingHours)) {
-            errorsArr.push("Invalid Working Hours")
-        }
         if(errorsArr.length > 0) {
             throw new Error(errorsArr.join(", "))
         }
-        const { error, data } = await createWorker(req.body);
+        const { error, data } = await createClient(req.body);
         if(error || !data?.id) {
             throw new Error(error)
         }
@@ -89,7 +66,7 @@ export const registerController = async (req: Request, res: Response, next: Next
     }
 }
 
-export const verifyWorkerPhoneNumberController = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyClientPhoneNumberController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { phoneNumber } = req.query as { phoneNumber: string };
         if(!validatePhoneNumber(phoneNumber.trim())) {
@@ -123,7 +100,7 @@ export const verifyWorkerPhoneNumberController = async (req: Request, res: Respo
     }
 }
 
-export const verifyWorkerOTPController = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyClientOTPController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { otp, referenceId, phoneNumber } = req.body;
         if(!otp) {
@@ -144,7 +121,7 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
 
         const [_o, _w] = await Promise.all([
             verifyOtp(referenceId, otp),
-            getWorkerByPhoneNumber(phoneNumber)
+            getClientByPhoneNumber(phoneNumber)
         ]);
         if(_o?.error) {
             throw new Error(_o?.error)
@@ -153,8 +130,8 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
             throw new Error("An error occurred verifying OTP")
         }
         removeOtp(referenceId);
-        if(_w?.data?.id && _w?.data?.userType) {
-            const token = createJwtToken(_w?.data?.id, UserTypes.WORKER)
+        if(_w?.data?.id) {
+            const token = createJwtToken(_w?.data?.id, UserTypes.USER)
             if(token){
                 return res.status(200).json({
                     message: "Phone Number Verified Successfully",
@@ -176,7 +153,7 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
     }
 }
 
-export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyClientJwtTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
         if(!token) {
@@ -186,10 +163,10 @@ export const verifyWorkerJwtTokenMiddleware = async (req: Request, res: Response
             throw new Error("Token is invalid")
         }
         const decodedToken = await verifyJwtToken(token);
-        if(!decodedToken?.id || decodedToken?.type !== UserTypes.WORKER) {
+        if(!decodedToken?.id || decodedToken?.type !== UserTypes.USER) {
             throw new Error()
         }
-        const { error, data } = await getWorkerById(decodedToken.id);
+        const { error, data } = await getClientById(decodedToken.id);
         if(error) {
             throw new Error(error)
         }

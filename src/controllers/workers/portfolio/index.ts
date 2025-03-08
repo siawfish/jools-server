@@ -6,7 +6,7 @@ import {
     getPortfoliosByWorkerId, 
     updatePortfolio, 
     deletePortfolio 
-} from '../../../services/workers/portfolio';
+} from '../../../services/portfolio/index';
 import { validatePortfolioPayload, validateUpdatePortfolioPayload } from './helpers';
 import { CreatePortfolioPayload, UpdatePortfolioPayload } from './type';
 import { getSkillsById } from '../../../services/skills';

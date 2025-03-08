@@ -1,8 +1,6 @@
-import { start } from "repl";
-import { DaysOfTheWeekType } from "../../../types";
-import { WorkingHours, AcceptedTermsType, LocationType, GhanaCard } from "../../../types";
+import { WorkingHours, AcceptedTermsType, LocationType, GhanaCard } from "../../types";
 import jwt from "jsonwebtoken";
-import { UserTypes } from "../../../types";
+import { UserTypes } from "../../types";
 
 // export a function that validates ghanaian phone numbers
 export const validatePhoneNumber = (phoneNumber: string): boolean => {

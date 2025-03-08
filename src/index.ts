@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import config from '../config/index.js';
-import { workerRouter, assetsRouter } from './routes/index.js';
+import { workerRouter, assetsRouter, userRouter } from './routes/index.js';
 import typesense, { typesenseWorkerSchema } from '../config/typesense.js';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection.js';
@@ -47,19 +47,13 @@ app.use('/api/assets', assetsRouter.assetsRoutes);
 
 // workers routes
 app.use('/api/workers/auth', workerRouter.workersAuthRoutes);
-// app.use('/api/workers', workerRouter.workersProfileRoutes);
 app.use('/api/workers/portfolio', workerRouter.workersPortfolioRoutes);
 app.use('/api/workers/skills', workerRouter.workersSkillsRoutes);
-// app.use('/api/workers', workerRouter.workersFilesRoutes);
-// app.use('/api/workers', workerRouter.workersSkillsRoutes);
 
 // users routes
-// app.use('/api/users/auth', userRouter.usersAuthRoutes);
-// app.use('/api/users', userRouter.usersFilesRoutes);
-// app.use('/api/users', userRouter.usersProfileRoutes);
-// app.use('/api/users', userRouter.usersBookingRoutes);
-// app.use('/api/users', userRouter.usersSkillsRoutes);
-// app.use('/api/users', userRouter.searchRoutes);
+app.use('/api/users/auth', userRouter.usersAuthRoutes);
+app.use('/api/users/portfolio', userRouter.usersPortfolioRoutes);
+app.use('/api/users/skills', userRouter.usersSkillsRoutes);
 
 // admin routes
 // app.use('/api/admin/auth', adminRouter.adminAuthRoutes);
