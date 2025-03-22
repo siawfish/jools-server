@@ -26,7 +26,10 @@ export const createWorker = async (worker: WorkerRegisterPayload): Promise<{erro
             db.insert(workerTable).values({
                 userId: userData[0].id,
                 workingHours: worker.workingHours,
-                ghanaCard: worker.ghanaCard,
+                ghanaCard: {
+                    ...worker.ghanaCard,
+                    isVerified: false
+                },
                 skills: worker.skills.map((skill) => skill.id),
             }),
             db.insert(workerSkillsTable).values(worker.skills.map((skill) => ({
