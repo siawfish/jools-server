@@ -14,9 +14,11 @@ import {
     createJwtToken,
     isTokenBlacklisted,
     verifyJwtToken,
-    addToBlacklist
+    addToBlacklist,
+    validateImageUrl,
+    validateGender,
 } from '../../../helpers/auth/helpers';
-import { createOtp, removeOtp, verifyOtp } from '../../../services/otp';
+import { createOtp, removeOtp, updateOtp, verifyOtp } from '../../../services/otp';
 import { sendSms } from '../../../services/sms';
 import { UserTypes } from '../../../types';
 import { getSkillsById } from '../../../services/skills';
@@ -27,6 +29,7 @@ export const registerController = async (req: Request, res: Response, next: Next
             name,
             email,
             avatar,
+            gender,
             phoneNumber,
             location,
             workingHours,
@@ -41,6 +44,15 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!avatar) {
             errorsArr.push("Avatar is required")
         }
+        if(!gender) {
+            errorsArr.push("Gender is required")
+        }
+        if(!validateGender(gender)) {
+            errorsArr.push("Gender is invalid")
+        }
+        if(!validateImageUrl(avatar)) {
+            errorsArr.push("Avatar is invalid")
+        }
         if(!validatePhoneNumber(phoneNumber?.trim())) {
             errorsArr.push("Phone Number is required")
         }
@@ -53,16 +65,20 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!validateAcceptedTerms(acceptedTerms)) {
             errorsArr.push("Accepted Terms is required")
         }
-        if(ghanaCard) {
-            if(!validateGhanaCard(ghanaCard)) {
-                errorsArr.push("Ghana Card is required")
-            }
+        if(!validateGhanaCard(ghanaCard)) {
+            errorsArr.push("Documents are invalid")
+        }
+        if(!validateWorkingHours(workingHours)) {
+            errorsArr.push("Invalid Working Hours")
         }
         if(!validateSkills(skills)) {
             errorsArr.push("Invalid Skills")
         }
+        if(errorsArr.length > 0) {
+            throw new Error(errorsArr.join(", "))
+        }
         if(skills && skills.length > 0){
-            const skillPromises = skills.map(skill => getSkillsById(skill));
+            const skillPromises = skills.map(skill => getSkillsById(skill?.id));
             const skillsResults = await Promise.all(skillPromises);
             skillsResults.forEach(({ error, data }) => {
                 if (error) {
@@ -70,19 +86,18 @@ export const registerController = async (req: Request, res: Response, next: Next
                 }
             });
         }
-        if(!validateWorkingHours(workingHours)) {
-            errorsArr.push("Invalid Working Hours")
-        }
-        if(errorsArr.length > 0) {
-            throw new Error(errorsArr.join(", "))
-        }
         const { error, data } = await createWorker(req.body);
         if(error || !data?.id) {
             throw new Error(error)
         }
+
+        const token = createJwtToken(data?.id, UserTypes.WORKER)
         return res.status(201).json({
             message: "User registered successfully",
-            data
+            data: {
+                token,
+                user: data
+            }
         })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)
@@ -95,12 +110,24 @@ export const verifyWorkerPhoneNumberController = async (req: Request, res: Respo
         if(!validatePhoneNumber(phoneNumber.trim())) {
             throw new Error("Phone Number is required")
         }
-        const { error, data } = await createOtp(phoneNumber);
+        let data;
+        const { error, data: createData } = await createOtp(phoneNumber);
         if(error) {
             if(error.includes("already in use")) {
-                throw new Error("Pending Verification")
+                const { error: updateError, data: updateData } = await updateOtp(phoneNumber);
+                console.log(updateError, updateData);
+                if(updateError) {
+                    throw new Error(updateError)
+                }
+                if(!updateData) {
+                    throw new Error("An error occurred")
+                }
+                data = updateData;
+            } else {
+                throw new Error(error)
             }
-            throw new Error(error)
+        } else {
+            data = createData;
         }
         if(!data) {
             throw new Error("An error occurred")

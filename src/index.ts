@@ -4,13 +4,13 @@ import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import config from '../config/index.js';
-import { workerRouter, assetsRouter, userRouter } from './routes/index.js';
-import typesense, { typesenseWorkerSchema } from '../config/typesense.js';
+import { workerRouter, assetsRouter, userRouter, googleRouter } from './routes/index.js';
+// import typesense, { typesenseWorkerSchema } from '../config/typesense.js';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection.js';
 
 const app = express();
-const schema = typesenseWorkerSchema as CollectionCreateSchema;
+// const schema = typesenseWorkerSchema as CollectionCreateSchema;
 
 app.use(express.json());
 app.use(cors());
@@ -25,25 +25,28 @@ app.use(
     })
 );
 
-typesense.collections().retrieve().then((collections: CollectionSchema[]) => {
-    const workerCollectionExists = collections.some(collection => collection['name'] === 'workers');
+// typesense.collections().retrieve().then((collections: CollectionSchema[]) => {
+//     const workerCollectionExists = collections.some(collection => collection['name'] === 'workers');
 
-    if (!workerCollectionExists) {
-        typesense.collections().create(schema).then(() => {
-            console.log('Worker schema created');
-        }).catch((error: any) => {
-            console.log(error?.message);
-        });
-        return;
-    }
+//     if (!workerCollectionExists) {
+//         typesense.collections().create(schema).then(() => {
+//             console.log('Worker schema created');
+//         }).catch((error: any) => {
+//             console.log(error?.message);
+//         });
+//         return;
+//     }
 
-    console.log('Worker collection exists');
-}).catch((error: any) => {
-    console.log(error?.message);
-});
+//     console.log('Worker collection exists');
+// }).catch((error: any) => {
+//     console.log(error?.message);
+// });
 
 // assets routes
 app.use('/api/assets', assetsRouter.assetsRoutes);
+
+// google routes
+app.use('/api/google', googleRouter.googleRoutes);
 
 // workers routes
 app.use('/api/workers/auth', workerRouter.workersAuthRoutes);

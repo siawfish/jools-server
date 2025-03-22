@@ -4,12 +4,6 @@ import { uploadAssets, deleteAssetById, getAssetById } from '../../services/asse
 import { AssetType, AssetUploadInput, AssetModule } from '../../services/assets/type';
 import { v4 as uuidv4 } from 'uuid';
 import { UploadedFile } from 'express-fileupload';
-/**
- * Generates a path for storing assets based on module and user ID
- */
-const generateAssetPath = (module: AssetModule, userId: string) => {
-  return `${module}/${userId}`;
-};
 
 /**
  * Controller for uploading assets
@@ -34,10 +28,6 @@ export const uploadAssetsController = async (req: Request, res: Response, next: 
     }
 
     const files = req.files;
-    const user = res.locals.user;
-    
-    // Get directory from request or use default
-    const directory = generateAssetPath(req.body.module, user.id);
     
     // Prepare assets for upload
     const assetsToUpload: AssetUploadInput[] = [];
@@ -71,7 +61,7 @@ export const uploadAssetsController = async (req: Request, res: Response, next: 
     }
     
     // Upload assets to Cloudinary
-    const uploadResults = await uploadAssets(assetsToUpload, directory);
+    const uploadResults = await uploadAssets(assetsToUpload, req.body.module);
     
     // Return results
     return res.status(200).json({

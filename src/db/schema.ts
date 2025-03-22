@@ -1,6 +1,6 @@
 import { integer, pgTable, varchar, uuid, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { BookingStatuses, Theme, ServiceLocationType, UserTypes, WorkingHours, SettingsType, LanguageType, CurrencyType, TimezoneType, AcceptedTermsType, LocationType, GhanaCard } from "../types";
+import { BookingStatuses, Theme, ServiceLocationType, UserTypes, WorkingHours, SettingsType, LanguageType, CurrencyType, TimezoneType, AcceptedTermsType, LocationType, GhanaCard, SkillType, Gender } from "../types";
 import { Asset } from "../services/assets/type";
 
 export const usersTable = pgTable("users", {
@@ -9,6 +9,7 @@ export const usersTable = pgTable("users", {
     email: varchar({ length: 255 }).notNull(),
     avatar: varchar({ length: 255 }).notNull(),
     phoneNumber: varchar({ length: 255 }).unique().notNull(),
+    gender: varchar("gender", { length: 255 }).notNull().$type<Gender>(),
     createdAt: timestamp("created_at").default(sql`now()`).notNull(),
     updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
     deletedAt: timestamp("deleted_at"),
@@ -39,33 +40,33 @@ export const workerTable = pgTable("workers", {
     userId: uuid("user_id").references(() => usersTable.id).unique().notNull(),
     workingHours: jsonb("working_hours").$type<WorkingHours>().notNull(),
     ghanaCard: jsonb("ghana_card").$type<GhanaCard>().notNull(),
-    skills: jsonb("skills").references(() => skillTable.id).$type<string[]>().notNull(),
+    skills: jsonb("skills").default([]).$type<string[]>().notNull(),
 });
 
 export const skillTable = pgTable("skills", { 
     id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
     name: varchar({ length: 255 }).notNull(),
-    rate: integer("rate").default(0),
-    yearsOfExperience: integer("years_of_experience").default(0),
     icon: varchar({ length: 255 }),
+    createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+    updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+    createdBy: uuid("created_by").references(() => usersTable.id),
+    updatedBy: uuid("updated_by").references(() => usersTable.id),
+});
+
+export const workerSkillsTable = pgTable("worker_skills", {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    workerId: uuid("worker_id").references(() => workerTable.userId).notNull(),
+    skillId: uuid("skill_id").references(() => skillTable.id).notNull(),
+    rate: integer("rate").default(0).notNull(),
+    yearsOfExperience: integer("years_of_experience").default(0).notNull(),
+    updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
 });
 
 export const portfolioTable = pgTable("portfolios", {
     id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
     description: varchar({ length: 255 }).notNull(),
-    assets: jsonb("assets").references(() => assetTable.id).$type<Asset[]>(),
-    skills: jsonb("skills").references(() => skillTable.id).$type<string[]>(),
-    createdAt: timestamp("created_at").default(sql`now()`).notNull(),
-    updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
-    createdBy: uuid("created_by").references(() => usersTable.id),
-});
-
-export const assetTable = pgTable("assets", {
-    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-    uri: varchar({ length: 255 }).notNull(),
-    width: integer("width"),
-    height: integer("height"),
-    type: varchar("type", { length: 255 }).notNull().$type<'IMAGE' | 'VIDEO' | 'PDF'>(),
+    assets: jsonb("assets").$type<Asset[]>(),
+    skills: jsonb("skills").$type<string[]>(),
     createdAt: timestamp("created_at").default(sql`now()`).notNull(),
     updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
     createdBy: uuid("created_by").references(() => usersTable.id),
@@ -95,7 +96,7 @@ export const bookingTable = pgTable("bookings", {
     date: timestamp("date").notNull(),
     startTime: timestamp("start_time").notNull(),
     estimatedEndTime: timestamp("estimated_end_time").notNull(),
-    media: jsonb("media").references(() => assetTable.id).$type<string[]>(),
+    media: jsonb("media").$type<Asset[]>(),
     serviceType: varchar("service_type", { length: 255 }).notNull().$type<ServiceLocationType>(),
 });
 

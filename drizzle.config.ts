@@ -10,7 +10,5 @@ export default {
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },
-  migrationsFolder: './drizzle',
-  migrationsTable: 'migrations',
   strict: true,
 } satisfies Config;

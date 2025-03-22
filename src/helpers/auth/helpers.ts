@@ -1,4 +1,4 @@
-import { WorkingHours, AcceptedTermsType, LocationType, GhanaCard } from "../../types";
+import { WorkingHours, AcceptedTermsType, LocationType, GhanaCard, SkillType, DaysOfTheWeekType, Gender } from "../../types";
 import jwt from "jsonwebtoken";
 import { UserTypes } from "../../types";
 
@@ -70,15 +70,39 @@ export const validateWorkingHours = (
         if (typeof workingHours[day as keyof WorkingHours].from !== "string") return false;
         if (typeof workingHours[day as keyof WorkingHours].to !== "string") return false;
         if (typeof workingHours[day as keyof WorkingHours].opened !== "boolean") return false;
+        const daysOfTheWeek = Object.values(DaysOfTheWeekType);
+        if (!daysOfTheWeek.includes(day as DaysOfTheWeekType)) return false;
         if (!validateDayStartEnd(workingHours[day as keyof WorkingHours].from, workingHours[day as keyof WorkingHours].to)) return false;
     }
     return true;
 };
   
-  export const validateSkills = (skills: string[]): boolean => {
+  export const validateSkills = (skills: SkillType[]): boolean => {
     if (!Array.isArray(skills)) return false;
     if (skills.length < 1) return false;
-    if (skills.some(skill => typeof skill !== "string")) return false;
+    for (const skill of skills) {
+      if (typeof skill !== "object") return false;
+      if (typeof skill.id !== "string") return false;
+      if (typeof skill.rate !== "number") return false;
+      if (typeof skill.yearsOfExperience !== "number") return false;
+      if (skill.rate < 0) return false;
+      if (skill.yearsOfExperience < 0) return false;
+    }
+    return true;
+  }
+
+  const validateGhanaCardNumber = (number: string): boolean => {
+    const ghanaCardRegex = /^GHA-\d{9}-\d$/;
+    return ghanaCardRegex.test(number);
+  }
+
+  export const validateGender = (gender: Gender): boolean => {
+    return Object.values(Gender).includes(gender);
+  }
+
+  export const validateImageUrl = (url: string): boolean => {
+    if (typeof url !== "string") return false;
+    if (url.length < 1) return false;
     return true;
   }
   
@@ -87,6 +111,9 @@ export const validateWorkingHours = (
     if (typeof ghanaCard.number !== "string") return false;
     if (typeof ghanaCard.front !== "string") return false;
     if (typeof ghanaCard.back !== "string") return false;
+    if (!validateGhanaCardNumber(ghanaCard.number)) return false;
+    if (!validateImageUrl(ghanaCard.front)) return false;
+    if (!validateImageUrl(ghanaCard.back)) return false;
     return true;
   }
 

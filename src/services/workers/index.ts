@@ -1,9 +1,8 @@
 import typesense from "../../../config/typesense";
-import { User, Worker } from "./types";
-import { Status, Theme, UserTypes, WorkingHours, GhanaCard } from "../../types";
-import { DaysOfTheWeekType } from "../../types";
+import { Worker } from "./types";
+import { UserTypes, WorkingHours, GhanaCard } from "../../types";
 import { db } from "../../db";
-import { usersTable, workerTable } from "../../db/schema";
+import { usersTable, workerSkillsTable, workerTable, skillTable } from "../../db/schema";
 import { WorkerRegisterPayload } from "../../controllers/workers/auth/type";
 import { eq } from "drizzle-orm";
 import { formatDbError } from "../../helpers/errorHandlers";
@@ -14,6 +13,7 @@ export const createWorker = async (worker: WorkerRegisterPayload): Promise<{erro
             name: worker.name,
             email: worker.email,
             avatar: worker.avatar,
+            gender: worker.gender,
             phoneNumber: worker.phoneNumber,
             acceptedTerms: worker.acceptedTerms,
             userType: UserTypes.WORKER,
@@ -22,15 +22,20 @@ export const createWorker = async (worker: WorkerRegisterPayload): Promise<{erro
         if(!userData?.length) {
             throw new Error("Failed to create worker")
         }
-        const workerData = await db.insert(workerTable).values({
-            userId: userData[0].id,
-            workingHours: worker.workingHours,
-            ghanaCard: worker.ghanaCard,
-            skills: worker.skills,
-        }).returning()
-        if(!workerData?.length) {
-            throw new Error("Failed to create worker")
-        }
+        await Promise.allSettled([
+            db.insert(workerTable).values({
+                userId: userData[0].id,
+                workingHours: worker.workingHours,
+                ghanaCard: worker.ghanaCard,
+                skills: worker.skills.map((skill) => skill.id),
+            }),
+            db.insert(workerSkillsTable).values(worker.skills.map((skill) => ({
+                workerId: userData[0].id,
+                skillId: skill.id,
+                rate: skill.rate,
+                yearsOfExperience: skill.yearsOfExperience,
+            })))
+        ]);
         const { data} = await getWorkerById(userData[0].id);
         return { data }
     } catch (error:any) {
@@ -40,26 +45,44 @@ export const createWorker = async (worker: WorkerRegisterPayload): Promise<{erro
 
 export const getWorkerById = async (id: string): Promise<{error?:string; data?:Worker }> => {
     try {
-        const res = await db.select().from(usersTable).leftJoin(workerTable, eq(usersTable.id, workerTable.userId)).where(eq(usersTable.id, id));
-        if(!res.length) {
+        const [userAndWorker, workerSkills] = await Promise.all([
+            db.select()
+                .from(usersTable)
+                .leftJoin(workerTable, eq(usersTable.id, workerTable.userId))
+                .where(eq(usersTable.id, id)),
+            db.select()
+                .from(workerSkillsTable)
+                .leftJoin(skillTable, eq(workerSkillsTable.skillId, skillTable.id))
+                .where(eq(workerSkillsTable.workerId, id))
+        ]);
+
+        if(!userAndWorker.length) {
             throw new Error("Worker not found")
         }
+
         return { data: {
-            id: res[0].users.id,
-            name: res[0].users.name,
-            email: res[0].users.email,
-            phoneNumber: res[0].users.phoneNumber,
-            location: res[0].users.location,
-            workingHours: res[0]?.workers?.workingHours as WorkingHours,
-            ghanaCard: res[0]?.workers?.ghanaCard as GhanaCard,
-            skills: res[0]?.workers?.skills as string[],
-            avatar: res[0].users.avatar,
-            createdAt: res[0].users.createdAt,
-            updatedAt: res[0].users.updatedAt,
-            accountStatus: res[0].users.accountStatus,
-            userType: res[0].users.userType,
-            acceptedTerms: res[0].users.acceptedTerms,
-            userId: res[0].users.id,
+            id: userAndWorker[0].users.id,
+            name: userAndWorker[0].users.name,
+            email: userAndWorker[0].users.email,
+            gender: userAndWorker[0].users.gender,
+            phoneNumber: userAndWorker[0].users.phoneNumber,
+            location: userAndWorker[0].users.location,
+            workingHours: userAndWorker[0]?.workers?.workingHours as WorkingHours,
+            ghanaCard: userAndWorker[0]?.workers?.ghanaCard as GhanaCard,
+            skills: workerSkills.map(s=>({
+                ...s.worker_skills,
+                id: s.skills?.id,
+                name: s.skills?.name,
+                rate: s.worker_skills?.rate,
+                yearsOfExperience: s.worker_skills?.yearsOfExperience,
+            })),
+            avatar: userAndWorker[0].users.avatar,
+            createdAt: userAndWorker[0].users.createdAt,
+            updatedAt: userAndWorker[0].users.updatedAt,
+            accountStatus: userAndWorker[0].users.accountStatus,
+            userType: userAndWorker[0].users.userType,
+            acceptedTerms: userAndWorker[0].users.acceptedTerms,
+            userId: userAndWorker[0].users.id,
         } }
     } catch (error:any) {
         return { error: formatDbError(error?.message) }
@@ -68,26 +91,43 @@ export const getWorkerById = async (id: string): Promise<{error?:string; data?:W
 
 export const getWorkerByPhoneNumber = async (phoneNumber: string) => {
     try {
-        const res = await db.select().from(usersTable).where(eq(usersTable.phoneNumber, phoneNumber)).leftJoin(workerTable, eq(usersTable.id, workerTable.userId));
-        if(!res.length) {
+        const userAndWorker = await db.select()
+            .from(usersTable)
+            .leftJoin(workerTable, eq(usersTable.id, workerTable.userId))
+            .where(eq(usersTable.phoneNumber, phoneNumber));
+
+        if(!userAndWorker.length) {
             throw new Error("Worker not found")
         }
+
+        const workerSkills = await db.select()
+            .from(workerSkillsTable)
+            .leftJoin(skillTable, eq(workerSkillsTable.skillId, skillTable.id))
+            .where(eq(workerSkillsTable.workerId, userAndWorker[0].users.id));
+
         const worker: Worker = {
-            id: res[0].users.id,
-            name: res[0].users.name,
-            email: res[0].users.email,
-            phoneNumber: res[0].users.phoneNumber,
-            location: res[0].users.location,
-            workingHours: res[0].workers?.workingHours as WorkingHours,
-            ghanaCard: res[0].workers?.ghanaCard as GhanaCard,
-            skills: res[0].workers?.skills as string[],
-            avatar: res[0].users.avatar,
-            createdAt: res[0].users.createdAt,
-            updatedAt: res[0].users.updatedAt,
-            accountStatus: res[0].users.accountStatus,
-            userType: res[0].users.userType,
-            acceptedTerms: res[0].users.acceptedTerms,
-            userId: res[0].users.id,
+            id: userAndWorker[0].users.id,
+            name: userAndWorker[0].users.name,
+            email: userAndWorker[0].users.email,
+            gender: userAndWorker[0].users.gender,
+            phoneNumber: userAndWorker[0].users.phoneNumber,
+            location: userAndWorker[0].users.location,
+            workingHours: userAndWorker[0].workers?.workingHours as WorkingHours,
+            ghanaCard: userAndWorker[0].workers?.ghanaCard as GhanaCard,
+            skills: workerSkills.map(s=>({
+                ...s.worker_skills,
+                id: s.skills?.id,
+                name: s.skills?.name,
+                rate: s.worker_skills?.rate,
+                yearsOfExperience: s.worker_skills?.yearsOfExperience,
+            })),
+            avatar: userAndWorker[0].users.avatar,
+            createdAt: userAndWorker[0].users.createdAt,
+            updatedAt: userAndWorker[0].users.updatedAt,
+            accountStatus: userAndWorker[0].users.accountStatus,
+            userType: userAndWorker[0].users.userType,
+            acceptedTerms: userAndWorker[0].users.acceptedTerms,
+            userId: userAndWorker[0].users.id,
         }
         return { data: worker }
     } catch (error:any) {

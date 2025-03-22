@@ -33,23 +33,19 @@ export enum BookingStatuses {
 }
 
 export interface SkillType {
-  id?: string;
-  name: string;
-  description: string;
-  icon: string;
-  createdBy: any;
-  createdAt: string;
-  updatedAt: string;
+  id: string;
+  rate: number;
+  yearsOfExperience: number;
 }
 
 export enum DaysOfTheWeekType {
-  MONDAY = "MONDAY",
-  TUESDAY = "TUESDAY",
-  WEDNESDAY = "WEDNESDAY",
-  THURSDAY = "THURSDAY",
-  FRIDAY = "FRIDAY",
-  SATURDAY = "SATURDAY",
-  SUNDAY = "SUNDAY",
+  MONDAY = "monday",
+  TUESDAY = "tuesday",
+  WEDNESDAY = "wednesday",
+  THURSDAY = "thursday",
+  FRIDAY = "friday",
+  SATURDAY = "saturday",
+  SUNDAY = "sunday",
 }
 
 export interface WorkingHours extends Record<DaysOfTheWeekType, {
@@ -62,6 +58,11 @@ export interface LocationType {
   address: string;
   lat: number;
   lng: number;
+}
+
+export enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
 }
 
 export interface GhanaCard {

@@ -58,7 +58,7 @@ const uploadSingleAsset = async (
       type: asset.type,
       success: true,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error uploading asset ${asset.id}:`, error);
     
     // Return error result
@@ -67,7 +67,7 @@ const uploadSingleAsset = async (
       url: '',
       type: asset.type,
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error.message || 'Unknown error',
     };
   }
 };
