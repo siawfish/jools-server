@@ -1,6 +1,6 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { db } from "../../db";
-import { portfolioTable, assetTable } from "../../db/schema";
+import { portfolioTable } from "../../db/schema";
 import { formatDbError } from "../../helpers/errorHandlers";
 import { Portfolio, CreatePortfolioPayload, UpdatePortfolioPayload } from "../../controllers/workers/portfolio/type";
 
@@ -39,7 +39,7 @@ export const getPortfolioById = async (id: string): Promise<{error?: string; dat
 
 export const getPortfoliosByWorkerId = async (workerId: string): Promise<{error?: string; data?: Portfolio[]}> => {
     try {
-        const portfolioData = await db.select().from(portfolioTable).where(eq(portfolioTable.createdBy, workerId));
+        const portfolioData = await db.select().from(portfolioTable).where(eq(portfolioTable.createdBy, workerId)).orderBy(desc(portfolioTable.createdAt));
         
         return { data: portfolioData as Portfolio[] };
     } catch (error: any) {

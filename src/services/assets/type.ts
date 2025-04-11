@@ -1,6 +1,7 @@
 export enum AssetType {
   IMAGE = 'IMAGE',
   VIDEO = 'VIDEO',
+  PDF = 'PDF',
 }
 
 export enum AssetModule {

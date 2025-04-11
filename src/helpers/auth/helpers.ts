@@ -122,7 +122,7 @@ export const validateWorkingHours = (
   }
 
   export const createJwtToken = (id: string, type: UserTypes) => {
-    return jwt.sign({ id, type }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
+    return jwt.sign({ id, type }, process.env.JWT_SECRET as string);
   }
 
   // Store blacklisted tokens in memory

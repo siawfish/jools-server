@@ -49,8 +49,8 @@ export const validateUpdatePortfolioPayload = (payload: UpdatePortfolioPayload):
         errors.push('Skills must be an array');
     }
 
-    if (payload.resources && !Array.isArray(payload.resources)) {
-        errors.push('Resources must be an array');
+    if (payload.assets && !Array.isArray(payload.assets)) {
+        errors.push('Assets must be an array');
     }
 
     if (!payload.createdBy) {
