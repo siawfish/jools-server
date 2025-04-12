@@ -137,6 +137,25 @@ export const getPortfoliosByWorkerId = async (workerId: string): Promise<{error?
 
 export const updatePortfolio = async (id: string, payload: UpdatePortfolioPayload): Promise<{error?: string; data?: Portfolio}> => {
     try {
+        // get portfolio by id
+        const portfolio = await db.select().from(portfolioTable)
+            .where(and(
+                eq(portfolioTable.id, id),
+                eq(portfolioTable.createdBy, payload.createdBy)
+            ));
+
+        if (!portfolio?.length) {
+            throw new Error("Portfolio not found");
+        }
+        
+        // check for removed assets
+        const removedAssets = portfolio[0]?.assets?.filter((asset: Asset) => !payload.assets?.map((a: Asset) => a.id).includes(asset.id));
+        if(removedAssets?.length) {
+            await Promise.all(removedAssets.map(async (asset: Asset) => {
+                await deleteAssetByUrl(asset.id, AssetModule.PORTFOLIO);
+            }));
+        }
+            
         const portfolioData = await db.update(portfolioTable)
             .set({
                 description: payload.description,

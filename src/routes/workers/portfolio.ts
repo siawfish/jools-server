@@ -15,7 +15,7 @@ const router = express.Router();
 router.post("/", verifyWorkerJwtTokenMiddleware, createPortfolioController);
 router.get("/:id", verifyWorkerJwtTokenMiddleware, getPortfolioByIdController);
 router.get("/", verifyWorkerJwtTokenMiddleware, getWorkerPortfoliosController);
-router.patch("/:id", verifyWorkerJwtTokenMiddleware, updatePortfolioController);
+router.put("/:id", verifyWorkerJwtTokenMiddleware, updatePortfolioController);
 router.delete("/:id", verifyWorkerJwtTokenMiddleware, deletePortfolioController);
 router.post("/:id/like", verifyWorkerJwtTokenMiddleware, likePortfolioController);
 router.post("/:id/comment", verifyWorkerJwtTokenMiddleware, commentOnPortfolioController);
