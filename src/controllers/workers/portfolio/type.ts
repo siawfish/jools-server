@@ -5,9 +5,28 @@ export interface Portfolio {
     description: string;
     assets: Asset[];
     skills: string[];
+    likes: number;
+    comments: number;
+    hasLiked: boolean;
+    hasCommented: boolean;
     createdAt: Date;
     updatedAt: Date;
     createdBy: string;
+}
+
+export interface PortfolioComment {
+    id: string;
+    portfolioId: string;
+    authorId: string;
+    comment: string;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: string;
+    author: {
+        id: string;
+        name: string;
+        avatar: string;
+    };
 }
 
 export interface CreatePortfolioPayload {

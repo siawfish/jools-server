@@ -1,13 +1,10 @@
-import { v2 as cloudinary } from 'cloudinary';
-import { AssetType, AssetUploadInput, Asset, AssetUploadOptions } from './type';
-import cloudinaryConfig from '../../../config/cloudinary';
-import { UploadedFile } from 'express-fileupload';
-
-// Configure Cloudinary with credentials from environment variables
-cloudinaryConfig()
+import { storage } from '../../../firebase/init';
+import { getDownloadURL } from 'firebase-admin/storage';
+import { AssetUploadInput, Asset, AssetUploadOptions, AssetModule } from './type';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Uploads multiple assets to Cloudinary
+ * Uploads multiple assets to Firebase Storage
  * @param assets Array of assets to upload
  * @param dir Directory to save the assets under
  * @returns Array of upload results
@@ -27,7 +24,7 @@ export const uploadAssets = async (
 };
 
 /**
- * Uploads a single asset to Cloudinary
+ * Uploads a single asset to Firebase Storage
  * @param asset Asset to upload
  * @param options Upload options
  * @returns Upload result
@@ -37,33 +34,40 @@ const uploadSingleAsset = async (
   options: AssetUploadOptions
 ): Promise<Asset> => {
   try {
-    // Get data for Cloudinary upload
+    // Get data for Firebase upload
     const fileData = await prepareFileForUpload(asset.asset);
     
-    // Set resource type based on asset type
-    const resourceType = asset.type === AssetType.VIDEO ? 'video' : 'image';
-    
     // Set folder path
-    const folder = options.dir ? `${options.dir}/${asset.id}` : 'uploads';
+    const folder = options.dir ? `${options.dir}` : 'uploads';
     
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(fileData, {
-      resource_type: resourceType,
-      folder,
+    // Generate unique filename if not provided
+    const fileId = asset.id || uuidv4();
+    
+    // Create reference to Firebase Storage
+    const storageRef = storage.bucket().file(`${folder}/${fileId}`);
+    
+    // Upload to Firebase Storage
+    await storageRef.save(fileData, {
+      contentType: asset.type,
+      metadata: {
+        firebaseStorageDownloadTokens: fileId,
+      }
     });
     
+    // Generate public URL
+    const url = await getDownloadURL(storageRef);
+    
     return {
-      id: result.public_id?.split('/')?.pop() || asset.id,
-      url: result.secure_url,
+      id: fileId,
+      url,
       type: asset.type,
       success: true,
     };
   } catch (error: any) {
     console.error(`Error uploading asset ${asset.id}:`, error);
-    
     // Return error result
     return {
-      id: asset.id,
+      id: asset.id || '',
       url: '',
       type: asset.type,
       success: false,
@@ -73,37 +77,40 @@ const uploadSingleAsset = async (
 };
 
 /**
- * Prepares a file for upload to Cloudinary
- * Works with express-fileupload's UploadedFile in Node.js environment
+ * Prepares a file for upload to Firebase Storage
  * @param file The file to prepare
- * @returns Data ready for Cloudinary upload
+ * @returns Buffer or raw data for Firebase upload
  */
-const prepareFileForUpload = (file: any): Promise<string> => {
+const prepareFileForUpload = (file: any): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     try {
       // Check if it's an express-fileupload UploadedFile
-      if (file && typeof file === 'object' && 'tempFilePath' in file) {
-        // If tempFilePath exists, return it (Cloudinary can handle file paths)
-        if (file.tempFilePath) {
-          return resolve(file.tempFilePath);
+      if (file && typeof file === 'object') {
+        // Handle express-fileupload with useTempFiles enabled
+        if (file.tempFilePath && typeof file.tempFilePath === 'string') {
+          const fs = require('fs');
+          return fs.readFile(file.tempFilePath, (err: any, data: Buffer) => {
+            if (err) return reject(err);
+            return resolve(data);
+          });
         }
         
-        // Otherwise use the data property which contains the file buffer
-        if (file.data) {
-          // Convert buffer to base64 data URL
-          const base64 = `data:${file.mimetype};base64,${file.data.toString('base64')}`;
-          return resolve(base64);
+        // Handle express-fileupload with data property
+        if ('data' in file && file.data && Buffer.isBuffer(file.data)) {
+          return resolve(file.data);
         }
       }
       
-      // Handle case where file is already a string (URL or base64)
-      if (typeof file === 'string') {
+      // Handle case where file is already a Buffer
+      if (Buffer.isBuffer(file)) {
         return resolve(file);
       }
       
-      // Handle case where file is a Buffer
-      if (Buffer.isBuffer(file)) {
-        return resolve(`data:application/octet-stream;base64,${file.toString('base64')}`);
+      // Handle case where file is a string (base64)
+      if (typeof file === 'string' && file.startsWith('data:')) {
+        // Extract the base64 content without the data URL prefix
+        const base64Data = file.split(',')[1];
+        return resolve(Buffer.from(base64Data, 'base64'));
       }
       
       reject(new Error('Unsupported file format'));
@@ -113,26 +120,51 @@ const prepareFileForUpload = (file: any): Promise<string> => {
   });
 };
 
-export const deleteAssetById = async (id: string) => {
+export const deleteAssetByUrl = async (name: string, module: AssetModule) => {
   try {
-    await cloudinary.uploader.destroy(id);
+    const fileName = `${module}/${name}`;
+    if (!fileName) {
+      throw new Error('Invalid URL');
+    }
+    await storage.bucket().file(fileName).delete();
+    
+    return {
+      message: 'Asset deleted successfully',
+    };
   } catch (error) {
-    console.error('Error in deleteAssetById:', error);
-    throw error;
+    console.error('Error in deleteAssetByUrl:', error);
+    return {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
   }
 };
 
-export const getAssetById = async (id: string) => {
+export const getAssetByName = async (name: string, module: AssetModule) => {
   try {
-    const asset = await cloudinary.api.resource(id);
+    // Find file with matching id
+    const file = await storage.bucket().file(`${module}/${name}`);
+    
+    if (!file) {
+      throw new Error(`Asset with name ${name} not found`);
+    }
+    
+    // Get signed URL
+    const url = await getDownloadURL(file);
+    
+    // Get metadata
+    const [metadata] = await file.getMetadata();
+    
     return {
       message: 'Asset fetched successfully',
-      data: asset,
+      data: {
+        id: name,
+        url,
+        type: metadata.contentType,
+      },
     };
   } catch (error) {
-    console.error('Error in getAssetById:', error);
+    console.error('Error in getAssetByName:', error);
     return {
-      message: 'Asset not found',
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }

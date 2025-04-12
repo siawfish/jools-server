@@ -11,7 +11,7 @@ export const getPortfolioByIdController = async (req: Request, res: Response, ne
             throw new Error('Portfolio ID is required');
         }
 
-        const { error, data } = await getPortfolioById(id);
+        const { error, data } = await getPortfolioById(id, res.locals.user.id);
         if (error) {
             throw new Error(error);
         }

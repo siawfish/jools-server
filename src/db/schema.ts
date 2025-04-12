@@ -1,4 +1,4 @@
-import { integer, pgTable, varchar, uuid, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { integer, pgTable, varchar, uuid, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { BookingStatuses, Theme, ServiceLocationType, UserTypes, WorkingHours, SettingsType, LanguageType, CurrencyType, TimezoneType, AcceptedTermsType, LocationType, GhanaCard, SkillType, Gender } from "../types";
 import { Asset } from "../services/assets/type";
@@ -70,7 +70,12 @@ export const portfolioTable = pgTable("portfolios", {
     createdAt: timestamp("created_at").default(sql`now()`).notNull(),
     updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
     createdBy: uuid("created_by").references(() => usersTable.id),
-});
+}, (table) => ({
+    // Composite index for efficient portfolio listing with sorting
+    createdByIdx: index("portfolios_created_by_idx").on(table.createdBy, table.description, table.createdAt),
+    // Index for timestamp-based queries
+    createdAtIdx: index("portfolios_created_at_idx").on(table.createdAt),
+}));
 
 export const otpTable = pgTable("otps", {
     id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -100,6 +105,30 @@ export const bookingTable = pgTable("bookings", {
     serviceType: varchar("service_type", { length: 255 }).notNull().$type<ServiceLocationType>(),
 });
 
+export const portfolioLikesTable = pgTable("portfolio_likes", {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    portfolioId: uuid("portfolio_id").references(() => portfolioTable.id).notNull(),
+    authorId: uuid("author_id").references(() => usersTable.id).notNull(),
+    createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+    updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+}, (table) => ({
+    // Composite index for both counting and user-specific queries
+    portfolioAuthorIdx: index("portfolio_likes_portfolio_author_idx").on(table.portfolioId, table.authorId),
+}));
+
+export const portfolioCommentsTable = pgTable("portfolio_comments", {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    portfolioId: uuid("portfolio_id").references(() => portfolioTable.id).notNull(),
+    authorId: uuid("author_id").references(() => usersTable.id).notNull(),
+    comment: varchar("comment", { length: 255 }).notNull(),
+    createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+    updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+}, (table) => ({
+    // Composite index for both counting and user-specific queries
+    portfolioAuthorIdx: index("portfolio_comments_portfolio_author_idx").on(table.portfolioId, table.authorId),
+    // Index for chronological access
+    createdAtIdx: index("portfolio_comments_created_at_idx").on(table.createdAt),
+}));
 
 
 

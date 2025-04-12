@@ -1,9 +1,3 @@
-export enum AssetType {
-  IMAGE = 'IMAGE',
-  VIDEO = 'VIDEO',
-  PDF = 'PDF',
-}
-
 export enum AssetModule {
   PORTFOLIO = 'PORTFOLIO',
   PROFILE = 'PROFILE',
@@ -14,13 +8,13 @@ export enum AssetModule {
 export interface AssetUploadInput {
   id: string;
   asset: any;
-  type: AssetType;
+  type: string;
 }
 
 export interface Asset {
   id: string;
   url: string;
-  type: AssetType;
+  type: string;
   success?: boolean;
   error?: string;
 }

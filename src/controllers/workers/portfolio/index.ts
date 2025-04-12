@@ -5,7 +5,10 @@ import {
     getPortfolioById, 
     getPortfoliosByWorkerId, 
     updatePortfolio, 
-    deletePortfolio 
+    deletePortfolio,
+    likePortfolio,
+    commentOnPortfolio,
+    getPortfolioComments
 } from '../../../services/portfolio/index';
 import { validatePortfolioPayload, validateUpdatePortfolioPayload } from './helpers';
 import { CreatePortfolioPayload, UpdatePortfolioPayload } from './type';
@@ -55,7 +58,9 @@ export const getPortfolioByIdController = async (req: Request, res: Response, ne
             throw new Error('Portfolio ID is required');
         }
 
-        const { error, data } = await getPortfolioById(id);
+        const userId = res.locals.user.id;
+
+        const { error, data } = await getPortfolioById(id, userId);
         if (error) {
             throw new Error(error);
         }
@@ -134,9 +139,79 @@ export const deletePortfolioController = async (req: Request, res: Response, nex
 
         return res.status(200).json({
             message: 'Portfolio deleted successfully',
+            success
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+export const likePortfolioController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Portfolio ID is required');
+        }
+
+        const { error, message } = await likePortfolio(id, res.locals.user.id);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: message,
             success: true
         });
     } catch (error: any) {
         errorResponse(error?.message, res, 400);
     }
 };
+
+export const commentOnPortfolioController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Portfolio ID is required');
+        }
+
+        const { comment } = req.body;
+        if (!comment) {
+            throw new Error('Comment is required');
+        }
+
+        const { error, success } = await commentOnPortfolio(id, res.locals.user.id, comment);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Comment added successfully',
+            success
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+export const getPortfolioCommentsController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new Error('Portfolio ID is required');
+        }
+
+        const { error, data } = await getPortfolioComments(id);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Portfolio comments fetched successfully',
+            data
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+

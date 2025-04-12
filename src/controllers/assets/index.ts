@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { errorResponse } from '../../helpers/errorHandlers';
-import { uploadAssets, deleteAssetById, getAssetById } from '../../services/assets';
-import { AssetType, AssetUploadInput, AssetModule } from '../../services/assets/type';
+import { uploadAssets, deleteAssetByUrl, getAssetByName } from '../../services/assets';
+import { AssetUploadInput, AssetModule } from '../../services/assets/type';
 import { v4 as uuidv4 } from 'uuid';
 import { UploadedFile } from 'express-fileupload';
 
@@ -36,9 +36,7 @@ export const uploadAssetsController = async (req: Request, res: Response, next: 
     if (Array.isArray(files.assets)) {
       // Multiple files
       for (const file of files.assets) {
-        const assetType = file.mimetype.startsWith('video/') 
-          ? AssetType.VIDEO 
-          : AssetType.IMAGE;
+        const assetType = file.mimetype
           
         assetsToUpload.push({
           id: uuidv4(),
@@ -49,9 +47,7 @@ export const uploadAssetsController = async (req: Request, res: Response, next: 
     } else if (files.assets) {
       // Single file
       const file = files.assets as UploadedFile;
-      const assetType = file.mimetype.startsWith('video/') 
-        ? AssetType.VIDEO 
-        : AssetType.IMAGE;
+      const assetType = file.mimetype
         
       assetsToUpload.push({
         id: uuidv4(),
@@ -78,35 +74,31 @@ export const uploadAssetsController = async (req: Request, res: Response, next: 
 
 /**
  * Controller for deleting assets
- * Deletes assets from Cloudinary based on provided URLs or public IDs
+ * Deletes assets from Firebase Storage based on provided file names
  */
 export const deleteAssetsController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { publicId } = req.body;
-    const user = res.locals.user;
+    const { id, module } = req.body;
     // Validate request
-    if (!publicId) {
+    if (!id) {
       return errorResponse('Asset ID is required', res, 400);
     }
 
-    const encodedPublicId = encodeURIComponent(publicId);
+    if(!Object.values(AssetModule).includes(module)) {
+      return errorResponse('Invalid module', res, 400);
+    }
 
-    const {data, error} = await getAssetById(encodedPublicId);
-    if(error) {
+    const {data, error} = await getAssetByName(id, module);
+    if(error || !data) {
       console.log('error', error);
       return errorResponse('Asset not found', res, 404);
     }
 
-    console.log('asset', data);
-
-    const assetOwner = extractImageOwnerFromUrl(data.secure_url);
-    console.log('assetOwner', assetOwner);
-    console.log('user.id', user.id);
-    if(assetOwner !== user.id) {
-      return errorResponse('Unauthorized', res, 403);
+    const { error: deleteError } = await deleteAssetByUrl(data.id, module);
+    if(deleteError) {
+      console.log('deleteError', deleteError);
+      return errorResponse('Failed to delete asset', res, 500);
     }
-
-    await deleteAssetById(encodedPublicId);
     
     return res.status(200).json({
       message: 'Asset deleted successfully',
@@ -117,14 +109,3 @@ export const deleteAssetsController = async (req: Request, res: Response, next: 
     return errorResponse(error instanceof Error ? error.message : 'Failed to delete assets', res, 500);
   }
 };
-
-const extractImageOwnerFromUrl = (url: string) => {
-  const urlObj = new URL(url);
-  const pathParts = urlObj.pathname.split('/');
-  // Find the index of the module (e.g. PORTFOLIO)
-  const moduleIndex = pathParts.findIndex(part => 
-    Object.values(AssetModule).includes(part as AssetModule)
-  );
-  // Owner ID is right after the module
-  return moduleIndex >= 0 ? pathParts[moduleIndex + 1] : null;
-}
