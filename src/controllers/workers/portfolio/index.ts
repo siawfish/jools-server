@@ -8,7 +8,9 @@ import {
     deletePortfolio,
     likePortfolio,
     commentOnPortfolio,
-    getPortfolioComments
+    getPortfolioComments,
+    deletePortfolioComment,
+    updatePortfolioComment
 } from '../../../services/portfolio/index';
 import { validatePortfolioPayload, validateUpdatePortfolioPayload } from './helpers';
 import { CreatePortfolioPayload, UpdatePortfolioPayload } from './type';
@@ -214,4 +216,52 @@ export const getPortfolioCommentsController = async (req: Request, res: Response
     }
 };
 
+export const deletePortfolioCommentController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = res.locals.user.id;
+        if (!id) {
+            throw new Error('Comment ID is required');
+        }
+
+        const { error, success } = await deletePortfolioComment(id, userId);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Comment deleted successfully',
+            success
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
+
+export const updatePortfolioCommentController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = res.locals.user.id;
+        if (!id) {
+            throw new Error('Comment ID is required');
+        }
+
+        const { comment } = req.body;
+        if (!comment) {
+            throw new Error('Comment is required');
+        }
+
+        const { error, data } = await updatePortfolioComment(id, userId, comment);
+        if (error) {
+            throw new Error(error);
+        }
+
+        return res.status(200).json({
+            message: 'Comment updated successfully',
+            data
+        });
+    } catch (error: any) {
+        errorResponse(error?.message, res, 400);
+    }
+};
 

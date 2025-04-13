@@ -283,3 +283,38 @@ export const getPortfolioComments = async (portfolioId: string): Promise<{error?
     }
 };
 
+export const deletePortfolioComment = async (id: string, userId: string): Promise<{error?: string; success?: boolean}> => {
+    try {
+        await db.delete(portfolioCommentsTable)
+            .where(and(
+                eq(portfolioCommentsTable.id, id),  
+                eq(portfolioCommentsTable.authorId, userId)
+            ));
+
+        return { success: true };
+    } catch (error: any) {
+        return { error: formatDbError(error?.message) };
+    }
+};
+
+export const updatePortfolioComment = async (id: string, userId: string, comment: string): Promise<{error?: string; data?: PortfolioComment}> => {
+    try {
+        const updatedComment = await db.update(portfolioCommentsTable)
+            .set({ comment, updatedAt: new Date() })
+            .where(and(
+                eq(portfolioCommentsTable.id, id),
+                eq(portfolioCommentsTable.authorId, userId)
+            ))
+            .returning();
+
+        if (!updatedComment?.length) {
+            throw new Error("Failed to update comment or comment not found");
+        }
+
+        return { 
+            data: updatedComment[0] as PortfolioComment
+        };
+    } catch (error: any) {
+        return { error: formatDbError(error?.message) };
+    }
+};
