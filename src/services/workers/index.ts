@@ -138,13 +138,97 @@ export const getWorkerByPhoneNumber = async (phoneNumber: string) => {
     }
 }
 
-// export const updateWorker = async (id:string, worker: Partial<WorkerType>): Promise<{error?:string; data?:WorkerType}> => {
-//     try {
-//         return { data: worker as WorkerType }
-//     } catch (error:any) {
-//         return { error: formatDbError(error?.message) }
-//     }
-// }
+export const updateWorker = async (id:string, worker: Partial<Worker>): Promise<{error?:string; data?:Worker}> => {
+    try {
+        // Prepare updates for different tables
+        const workerTableUpdates: Record<string, any> = {};
+        const userTableUpdates: Record<string, any> = {};
+        const skills = worker.skills || [];
+        const hasSkillsUpdate = skills.length > 0;
+        
+        // Prepare worker table updates
+        if (worker.workingHours) {
+            workerTableUpdates.workingHours = worker.workingHours;
+        }
+        
+        if (hasSkillsUpdate) {
+            workerTableUpdates.skills = skills.map((skill) => skill.id);
+        }
+        
+        // Prepare user table updates
+        if (worker.name) {
+            userTableUpdates.name = worker.name;
+        }
+        
+        if (worker.avatar) {
+            userTableUpdates.avatar = worker.avatar;
+        }
+        
+        if (worker.location) {
+            userTableUpdates.location = worker.location;
+        }
+        
+        // Prepare update operations
+        const updateOperations = [];
+        
+        // Add worker table update if needed
+        if (Object.keys(workerTableUpdates).length > 0) {
+            updateOperations.push(
+                db.update(workerTable)
+                    .set(workerTableUpdates)
+                    .where(eq(workerTable.userId, id))
+            );
+        }
+        
+        // Add user table update if needed
+        if (Object.keys(userTableUpdates).length > 0) {
+            updateOperations.push(
+                db.update(usersTable)
+                    .set({
+                        ...userTableUpdates,
+                        updatedAt: new Date()
+                    })
+                    .where(eq(usersTable.id, id))
+            );
+        }
+        
+        // Prepare skills update operations
+        if (hasSkillsUpdate) {
+            // Delete and insert need to be sequential, but can run concurrently with other updates
+            updateOperations.push(
+                (async () => {
+                    await db.delete(workerSkillsTable)
+                        .where(eq(workerSkillsTable.workerId, id));
+                    
+                    await db.insert(workerSkillsTable).values(
+                        skills.map(skill => ({
+                            workerId: id,
+                            skillId: skill.id as string,
+                            rate: skill.rate,
+                            yearsOfExperience: skill.yearsOfExperience
+                        }))
+                    );
+                })()
+            );
+        }
+        
+        // Run all update operations concurrently
+        if (updateOperations.length > 0) {
+            await Promise.all(updateOperations);
+        }
+
+        // Fetch the updated worker data
+        const { data, error } = await getWorkerById(id);
+        
+        if (error) {
+            throw new Error(error);
+        }
+        
+        return { data };
+    } catch (error:any) {
+        return { error: formatDbError(error?.message) }
+    }
+}
 
 // export const updateWorkerStatus = async (id: string, status: Status): Promise<{error?:string; data?:WorkerType}> => {
 //     try {

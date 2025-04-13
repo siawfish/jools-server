@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import config from '../config/index.js';
-import { workerRouter, assetsRouter, userRouter, googleRouter } from './routes/index.js';
+import { workerRouter, assetsRouter, userRouter, googleRouter, workerProfileRouter } from './routes/index.js';
 // import typesense, { typesenseWorkerSchema } from '../config/typesense.js';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection.js';
@@ -57,6 +57,9 @@ app.use('/api/workers/skills', workerRouter.workersSkillsRoutes);
 app.use('/api/users/auth', userRouter.usersAuthRoutes);
 app.use('/api/users/portfolio', userRouter.usersPortfolioRoutes);
 app.use('/api/users/skills', userRouter.usersSkillsRoutes);
+
+// workers profile routes
+app.use('/api/workers/profile', workerProfileRouter.workerProfileRoutes);
 
 // admin routes
 // app.use('/api/admin/auth', adminRouter.adminAuthRoutes);

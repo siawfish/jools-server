@@ -6,7 +6,7 @@ import clientAuthRoutes from './clients/auth'
 import clientPortfolioRoutes from './clients/portfolio'
 import clientSkillsRoutes from './clients/skills'
 import googleRoutes from './google'
-
+import workerProfileRoutes from './workers/profile'
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
     workersPortfolioRoutes: workerPortfolioRoutes,
@@ -21,6 +21,10 @@ const userRouter = {
 
 const googleRouter = {
     googleRoutes: googleRoutes,
+}
+
+const workerProfileRouter = {
+    workerProfileRoutes: workerProfileRoutes,
 }
 
 // const adminRouter = {
@@ -39,5 +43,6 @@ export {
     assetsRouter,
     userRouter,
     googleRouter,
+    workerProfileRouter,
     // adminRouter
 }
