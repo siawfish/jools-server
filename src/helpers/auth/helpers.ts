@@ -1,4 +1,4 @@
-import { WorkingHours, AcceptedTermsType, LocationType, GhanaCard, SkillType, DaysOfTheWeekType, Gender } from "../../types";
+import { WorkingHours, AcceptedTermsType, LocationType, GhanaCard, SkillType, DaysOfTheWeekType, Gender, Theme } from "../../types";
 import jwt from "jsonwebtoken";
 import { UserTypes } from "../../types";
 
@@ -37,6 +37,10 @@ export const validateWorkRate = (workRate: number): boolean => {
     if (typeof workRate !== "number") return false;
     return workRate >= 0;
 };
+
+export const validateTheme = (theme: Theme): boolean => {
+    return Object.values(Theme).includes(theme);
+}
 
 export const validateDayStartEnd = (startTime: string, endTime: string) => {
     const [startHours, startMinutes] = startTime.split(':').map(Number);

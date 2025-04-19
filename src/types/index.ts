@@ -102,4 +102,5 @@ export interface NotificationsType {
   email: boolean;
   sms: boolean;
   pushToken: string;
+  pushNotification: boolean;
 }

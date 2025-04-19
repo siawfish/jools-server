@@ -170,6 +170,10 @@ export const updateWorker = async (id:string, worker: Partial<Worker>): Promise<
         if (worker.location) {
             userTableUpdates.location = worker.location;
         }
+
+        if (worker.settings) {
+            userTableUpdates.settings = worker.settings;
+        }
         
         // Prepare update operations
         const updateOperations = [];
@@ -232,104 +236,6 @@ export const updateWorker = async (id:string, worker: Partial<Worker>): Promise<
         return { error: formatDbError(error?.message) }
     }
 }
-
-// export const updateWorkerStatus = async (id: string, status: Status): Promise<{error?:string; data?:WorkerType}> => {
-//     try {
-//         const worker = {
-//             id: "123",
-//             name: "John Doe",
-//             email: "john.doe@example.com",
-//             phoneNumber: "+233540000000",
-//             location: {
-//                 lat: 12.345678,
-//                 lng: 12.345678
-//             },
-//             workingHours: {
-//                 [DaysOfTheWeekType.MONDAY]: {
-//                     from: "09:00",
-//                     to: "17:00",
-//                     enabled: true
-//                 }
-//             },
-//             ghanaCard: {
-//                 number: "1234567890",
-//                 front: "https://example.com/front.jpg",
-//                 back: "https://example.com/back.jpg",
-//                 isVerified: true
-//             },
-//             acceptedTerms: {
-//                 status: true,
-//                 acceptedAt: new Date()
-//             },  
-//             skills: [
-//                 {
-//                     id: "123",
-//                     name: "Plumbing",
-//                     rate: 100,
-//                     yearsOfExperience: 5
-//                 }
-//             ],
-//             avatar: "https://example.com/avatar.jpg",
-//             createdAt: new Date().toISOString(),
-//             updatedAt: new Date().toISOString()
-//         }
-//         if(!worker) {
-//             throw new Error(`User with id "${id}" does not exist`)
-//         }
-//         return { data: worker as WorkerType }
-//     } catch (error:any) {
-//         return { error: error?.message }
-//     }
-// }
-
-// export const deleteWorker = async (id: string): Promise<{error?:string; data?:WorkerType}> => {
-//     try {
-//         const worker = {
-//             id: "123",
-//             name: "John Doe",
-//             email: "john.doe@example.com",
-//             phoneNumber: "+233540000000",
-//             location: {
-//                 lat: 12.345678,
-//                 lng: 12.345678
-//             },
-//             workingHours: {
-//                 [DaysOfTheWeekType.MONDAY]: {
-//                     from: "09:00",
-//                     to: "17:00",
-//                     enabled: true
-//                 }
-//             },
-//             ghanaCard: {
-//                 number: "1234567890",
-//                 front: "https://example.com/front.jpg",
-//                 back: "https://example.com/back.jpg",
-//                 isVerified: true
-//             },
-//             acceptedTerms: {
-//                 status: true,
-//                 acceptedAt: new Date()
-//             },  
-//             skills: [
-//                 {
-//                     id: "123",
-//                     name: "Plumbing",
-//                     rate: 100,
-//                     yearsOfExperience: 5
-//                 }
-//             ],
-//             avatar: "https://example.com/avatar.jpg",
-//             createdAt: new Date().toISOString(),
-//             updatedAt: new Date().toISOString()
-//         }
-//         if(!worker) {
-//             throw new Error(`User with id "${id}" does not exist`)
-//         }
-//         return { data: worker as WorkerType }
-//     } catch (error:any) {
-//         return { error: error?.message }
-//     }
-// }
 
 // export const updateWorkerInTypesense = async (id: string, worker: Partial<WorkerType>): Promise<void> => {
 //     try {
