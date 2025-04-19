@@ -19,6 +19,7 @@ export const usersTable = pgTable("users", {
             email: true,
             sms: true,
             pushToken: "",
+            pushNotification: false,
         },
         theme: Theme.LIGHT,
         language: LanguageType.ENGLISH,
