@@ -152,7 +152,8 @@ export const updateWorker = async (id:string, worker: Partial<Worker>): Promise<
         }
         
         if (hasSkillsUpdate) {
-            workerTableUpdates.skills = skills.map((skill) => skill.id);
+            workerTableUpdates.skills = skills;
+            userTableUpdates.skills = skills.map((skill) => skill.id);
         }
         
         // Prepare user table updates
@@ -184,11 +185,11 @@ export const updateWorker = async (id:string, worker: Partial<Worker>): Promise<
         if (Object.keys(userTableUpdates).length > 0) {
             updateOperations.push(
                 db.update(usersTable)
-                    .set({
-                        ...userTableUpdates,
-                        updatedAt: new Date()
-                    })
-                    .where(eq(usersTable.id, id))
+                .set({
+                    ...userTableUpdates,
+                    updatedAt: new Date()
+                })
+                .where(eq(usersTable.id, id))
             );
         }
         
@@ -203,7 +204,7 @@ export const updateWorker = async (id:string, worker: Partial<Worker>): Promise<
                     await db.insert(workerSkillsTable).values(
                         skills.map(skill => ({
                             workerId: id,
-                            skillId: skill.id as string,
+                            skillId: skill.skillId,
                             rate: skill.rate,
                             yearsOfExperience: skill.yearsOfExperience
                         }))
