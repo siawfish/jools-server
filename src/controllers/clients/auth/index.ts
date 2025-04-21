@@ -3,22 +3,19 @@ import { errorResponse } from '../../../helpers/errorHandlers';
 import { ClientRegisterPayload } from './type';
 import { 
     validateAcceptedTerms, 
-    validateGhanaCard, 
     validateLocation, 
     validateEmail, 
     validatePhoneNumber, 
-    validateSkills, 
-    validateWorkingHours,
     constructVerificationSms,
     createJwtToken,
     isTokenBlacklisted,
     verifyJwtToken,
-    addToBlacklist
+    addToBlacklist,
+    validateGender
 } from '../../../helpers/auth/helpers';
 import { createOtp, removeOtp, verifyOtp } from '../../../services/otp';
 import { sendSms } from '../../../services/sms';
 import { UserTypes } from '../../../types';
-import { getSkillsById } from '../../../services/skills';
 import { createClient, getClientById, getClientByPhoneNumber } from '../../../services/clients';
 
 export const registerController = async (req: Request, res: Response, next: NextFunction) => {
@@ -30,6 +27,7 @@ export const registerController = async (req: Request, res: Response, next: Next
             phoneNumber,
             location,
             acceptedTerms,
+            gender
          }: ClientRegisterPayload = req.body;
         const errorsArr = [] as string[];
         if(!name) {
@@ -37,6 +35,9 @@ export const registerController = async (req: Request, res: Response, next: Next
         }
         if(!avatar) {
             errorsArr.push("Avatar is required")
+        }
+        if(!validateGender(gender)) {
+            errorsArr.push("Gender is invalid")
         }
         if(!validatePhoneNumber(phoneNumber?.trim())) {
             errorsArr.push("Phone Number is required")
@@ -57,9 +58,13 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(error || !data?.id) {
             throw new Error(error)
         }
+        const token = createJwtToken(data?.id, UserTypes.USER)
         return res.status(201).json({
             message: "User registered successfully",
-            data
+            data: {
+                token,
+                user: data
+            }
         })
     } catch (error:any) {
         errorResponse(error?.message, res, 400)
@@ -120,7 +125,7 @@ export const verifyClientOTPController = async (req: Request, res: Response, nex
         }
 
         const [_o, _w] = await Promise.all([
-            verifyOtp(referenceId, otp),
+            verifyOtp(referenceId, otp, phoneNumber),
             getClientByPhoneNumber(phoneNumber)
         ]);
         if(_o?.error) {

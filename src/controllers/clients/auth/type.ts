@@ -1,4 +1,4 @@
-import { LocationType, AcceptedTermsType } from "../../../types";
+import { LocationType, AcceptedTermsType, Gender } from "../../../types";
 
 export type ClientRegisterPayload = {
     name: string;
@@ -7,4 +7,5 @@ export type ClientRegisterPayload = {
     phoneNumber: string;
     location: LocationType;
     acceptedTerms: AcceptedTermsType;
+    gender: Gender;
 }

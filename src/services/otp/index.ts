@@ -71,7 +71,7 @@ export const removeOtp = async (referenceId: string) => {
     }
 }
 
-export const verifyOtp = async (referenceId: string, otp: string) => {
+export const verifyOtp = async (referenceId: string, otp: string, phoneNumber: string) => {
     try {
         const otpData = await db.select().from(otpTable).where(eq(otpTable.referenceId, referenceId));
         if(otpData.length === 0) {
@@ -85,6 +85,9 @@ export const verifyOtp = async (referenceId: string, otp: string) => {
         if(otpData[0].createdAt < fiveMinutesAgo) {
             await removeOtp(referenceId);
             throw new Error("OTP expired")
+        }
+        if(otpData[0].phoneNumber !== phoneNumber) {
+            throw new Error("Don't try to hack the system")
         }
         return {
             error: null,

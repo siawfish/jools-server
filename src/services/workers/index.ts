@@ -1,27 +1,57 @@
-import typesense from "../../../config/typesense";
 import { Worker } from "./types";
 import { UserTypes, WorkingHours, GhanaCard } from "../../types";
 import { db } from "../../db";
 import { usersTable, workerSkillsTable, workerTable, skillTable } from "../../db/schema";
 import { WorkerRegisterPayload } from "../../controllers/workers/auth/type";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { formatDbError } from "../../helpers/errorHandlers";
 
 export const createWorker = async (worker: WorkerRegisterPayload): Promise<{error?:string; data?:Worker }> => {
     try {
-        const userData = await db.insert(usersTable).values({
-            name: worker.name,
-            email: worker.email,
-            avatar: worker.avatar,
-            gender: worker.gender,
-            phoneNumber: worker.phoneNumber,
-            acceptedTerms: worker.acceptedTerms,
-            userType: UserTypes.WORKER,
-            location: worker.location,
-        }).returning();
-        if(!userData?.length) {
-            throw new Error("Failed to create worker")
+        // Check if user exists and is of type USER
+        const existingUser = await db.select()
+            .from(usersTable)
+            .where(eq(usersTable.phoneNumber, worker.phoneNumber));
+
+        let userData;
+        
+        if (existingUser.length > 0) {
+            if (existingUser[0].userType === UserTypes.WORKER) {
+                throw new Error("User already exists");
+            }
+            
+            // Update existing user to worker type
+            userData = await db.update(usersTable)
+                .set({
+                    name: worker.name,
+                    email: worker.email,
+                    avatar: worker.avatar,
+                    gender: worker.gender,
+                    location: worker.location,
+                    userType: UserTypes.WORKER,
+                    acceptedTerms: worker.acceptedTerms,
+                    updatedAt: new Date()
+                })
+                .where(eq(usersTable.id, existingUser[0].id))
+                .returning();
+        } else {
+            // Create new user
+            userData = await db.insert(usersTable).values({
+                name: worker.name,
+                email: worker.email,
+                avatar: worker.avatar,
+                gender: worker.gender,
+                phoneNumber: worker.phoneNumber,
+                acceptedTerms: worker.acceptedTerms,
+                userType: UserTypes.WORKER,
+                location: worker.location,
+            }).returning();
         }
+
+        if(!userData?.length) {
+            throw new Error("Failed to create/update worker")
+        }
+
         await Promise.allSettled([
             db.insert(workerTable).values({
                 userId: userData[0].id,
@@ -39,10 +69,10 @@ export const createWorker = async (worker: WorkerRegisterPayload): Promise<{erro
                 yearsOfExperience: skill.yearsOfExperience,
             })))
         ]);
-        const { data} = await getWorkerById(userData[0].id);
+        const { data } = await getWorkerById(userData[0].id);
         return { data }
     } catch (error:any) {
-        return { error: formatDbError(error) }
+        return { error: error?.message || formatDbError(error) }
     }
 }
 
@@ -98,7 +128,7 @@ export const getWorkerByPhoneNumber = async (phoneNumber: string) => {
         const userAndWorker = await db.select()
             .from(usersTable)
             .leftJoin(workerTable, eq(usersTable.id, workerTable.userId))
-            .where(eq(usersTable.phoneNumber, phoneNumber));
+            .where(and(eq(usersTable.phoneNumber, phoneNumber), eq(usersTable.userType, UserTypes.WORKER)));
 
         if(!userAndWorker.length) {
             throw new Error("Worker not found")

@@ -170,7 +170,7 @@ export const verifyWorkerOTPController = async (req: Request, res: Response, nex
         }
 
         const [_o, _w] = await Promise.all([
-            verifyOtp(referenceId, otp),
+            verifyOtp(referenceId, otp, phoneNumber),
             getWorkerByPhoneNumber(phoneNumber)
         ]);
         if(_o?.error) {

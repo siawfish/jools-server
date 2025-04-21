@@ -1,4 +1,3 @@
-import typesense from "../../../config/typesense";
 import { User } from "./types";
 import { UserTypes } from "../../types";
 import { db } from "../../db";
@@ -17,12 +16,12 @@ export const createClient = async (client: ClientRegisterPayload): Promise<{erro
             acceptedTerms: client.acceptedTerms,
             userType: UserTypes.USER,
             location: client.location,
+            gender: client.gender,
         }).returning();
         if(!userData?.length) {
             throw new Error("Failed to create user")
         }
-        const { data} = await getClientById(userData[0].id);
-        return { data }
+        return { data: userData[0] }
     } catch (error:any) {
         return { error: formatDbError(error) }
     }
