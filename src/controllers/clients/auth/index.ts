@@ -33,9 +33,6 @@ export const registerController = async (req: Request, res: Response, next: Next
         if(!name) {
             errorsArr.push("Name is required")
         }
-        if(!avatar) {
-            errorsArr.push("Avatar is required")
-        }
         if(!validateGender(gender)) {
             errorsArr.push("Gender is invalid")
         }
@@ -44,9 +41,6 @@ export const registerController = async (req: Request, res: Response, next: Next
         }
         if(!validateLocation(location)) {
             errorsArr.push("Location is required")
-        }
-        if(!validateEmail(email?.trim())) {
-            errorsArr.push("Email is required")
         }
         if(!validateAcceptedTerms(acceptedTerms)) {
             errorsArr.push("Accepted Terms is required")

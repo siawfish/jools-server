@@ -10,13 +10,13 @@ export const createClient = async (client: ClientRegisterPayload): Promise<{erro
     try {
         const userData = await db.insert(usersTable).values({
             name: client.name,
-            email: client.email,
-            avatar: client.avatar,
-            phoneNumber: client.phoneNumber,
-            acceptedTerms: client.acceptedTerms,
+            email: client?.email,
+            avatar: client?.avatar,
+            phoneNumber: client?.phoneNumber,
+            acceptedTerms: client?.acceptedTerms,
             userType: UserTypes.USER,
-            location: client.location,
-            gender: client.gender,
+            location: client?.location,
+            gender: client?.gender,
         }).returning();
         if(!userData?.length) {
             throw new Error("Failed to create user")
