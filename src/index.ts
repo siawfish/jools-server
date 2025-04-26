@@ -52,14 +52,14 @@ app.use('/api/google', googleRouter.googleRoutes);
 app.use('/api/workers/auth', workerRouter.workersAuthRoutes);
 app.use('/api/workers/portfolio', workerRouter.workersPortfolioRoutes);
 app.use('/api/workers/skills', workerRouter.workersSkillsRoutes);
+app.use('/api/workers/profile', workerProfileRouter.workerProfileRoutes);
 
 // users routes
 app.use('/api/users/auth', userRouter.usersAuthRoutes);
 app.use('/api/users/portfolio', userRouter.usersPortfolioRoutes);
 app.use('/api/users/skills', userRouter.usersSkillsRoutes);
-
+app.use('/api/users/profile', userRouter.usersProfileRoutes);
 // workers profile routes
-app.use('/api/workers/profile', workerProfileRouter.workerProfileRoutes);
 
 // admin routes
 // app.use('/api/admin/auth', adminRouter.adminAuthRoutes);

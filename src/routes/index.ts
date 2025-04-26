@@ -7,6 +7,8 @@ import clientPortfolioRoutes from './clients/portfolio'
 import clientSkillsRoutes from './clients/skills'
 import googleRoutes from './google'
 import workerProfileRoutes from './workers/profile'
+import clientProfileRoutes from './clients/profile'
+
 const workerRouter = {
     workersAuthRoutes: workerAuthRoutes,
     workersPortfolioRoutes: workerPortfolioRoutes,
@@ -17,6 +19,7 @@ const userRouter = {
     usersAuthRoutes: clientAuthRoutes,
     usersPortfolioRoutes: clientPortfolioRoutes,
     usersSkillsRoutes: clientSkillsRoutes,
+    usersProfileRoutes: clientProfileRoutes,
 }
 
 const googleRouter = {
